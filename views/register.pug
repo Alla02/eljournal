@@ -1,0 +1,72 @@
+extends layout
+block variables
+    include variables
+block content
+    main.my-form
+      .cotainer
+        .row.justify-content-center
+          .col-md-8
+            .card
+              .card-header Регистрация
+              .card-body
+                form(name='my-form', onsubmit='return validform()', action='/register', method='post')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Логин:
+                    .col-md-6
+                        input(type='text', name='login' class='form-control required', placeholder='Логин', autofocus)
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Пароль:
+                    .col-md-6
+                        input(type='text', name='password' class='form-control required', placeholder='Пароль')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Повторите пароль:
+                    .col-md-6
+                        input(type='text', name='password2' class='form-control required', placeholder='Повторите пароль')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Email:
+                    .col-md-6
+                        input(type='text', name='email' class='form-control required', placeholder='Email')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Фамилия:
+                    .col-md-6
+                        input(type='text', name='last_name' class='form-control required', placeholder='Фамилия')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Имя:
+                    .col-md-6
+                        input(type='text', name='first_name' class='form-control required', placeholder='Имя')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Отчество:
+                    .col-md-6
+                        input(type='text', name='second_name' class='form-control', placeholder='Отчество')
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Дата рождения:
+                    .col-md-6
+                        input(type='text', name='birthyear' class='form-control', placeholder='Дата рождения' id="birthyear")
+                  .form-group.row
+                    label.col-md-4.col-form-label.text-md-right Тип пользователя
+                    .col-md-6
+                      //select(type='text', name='user_type' class='form-control' id='SelectTypeReg' onChange="UserRegister(this)")
+                      select(type='text', name='user_type' class='form-control' id='SelectTypeReg')
+                        each value in list
+                          option #{value.name}
+                  div(id='selectGroup' class='div-none')
+                    .form-group.row
+                      label.col-md-4.col-form-label.text-md-right Номер группы
+                      .col-md-6
+                        select(type='text', name='studyGroup' id='studyGroup' class='form-control')
+                          each val in studyGroups
+                            option #{val.name}
+                  div(id='selectStudent' class='div-none')
+                    .form-group.row
+                      label.col-md-4.col-form-label.text-md-right Студент
+                      .col-md-6
+                        select(type='text', name='student' id='student' class='form-control')
+                  .col-md-6.offset-md-4
+                    button.btn.btn-primary(type='submit')
+                      | Зарегистрироваться
+
+                #message
+                if message
+                h1.text-center.error-message #{message}
+
+

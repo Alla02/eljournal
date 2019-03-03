@@ -1,0 +1,26 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+        h2="Изменение данных студента"
+        br
+        form(action='/student/'+val.id, method='post')
+          div(class="form-row")
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
+              input(name='lastname' class="form-control" type="text" value=val.lastname)
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
+              input(name='firstname' class="form-control" type="text" value=val.firstname)
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
+              input(name='secondname' class="form-control" type="text" value=val.secondname)
+            div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
+              input(name='birthyear2', class="form-control" type="text" value=val.birthyear id="birthyear2")
+            div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
+                select(type='text', name='studyGroup' class='form-control')
+                    each value in studyGroups
+                        option #{value.name}
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6")
+              input(type='submit',class="btn btn-primary", value='Изменить')
+              font()=" "
+              a(class="btn btn-secondary" href='/listStudent' role="button") Отмена

@@ -1,0 +1,25 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+        h2=title
+        br
+        form(action='/addSubject', method='post')
+          div(class="form-row")
+            div(class="col-lg-6 col-md-6 col-sm-6 col-xs-7 mb-3")
+              input(name='name', class="form-control" type="text" placeholder='Название предмета' required)
+            div(class="col-lg-6 col-md-6 col-sm-6 col-xs-7 ")
+              input(class="btn btn-success" type='submit', value='Добавить')
+        br
+        ul(class="list-group")
+        each val in res
+            li(class="list-group-item serviceList" id = val.id ) #{val.name}
+                i(class="caret fa fa-caret-down")
+            div(class="slide")
+                br
+                a(class="btn btn-dark" href='/subject/' + val.id role="button") Изменить
+                font()=" "
+                a(class="btn btn-danger" href='/delSubject/' + val.id role="button") Удалить
+                p

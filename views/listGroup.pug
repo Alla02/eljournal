@@ -1,0 +1,39 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+        h1(class=mt-5)=title
+        div(class="row")
+        div(class="tab-content")
+            br
+            p Номер группы и год зачисления
+            form(class="form-signin" id="formGroup" action='/addGroup', method='POST')
+                div(class="form-row")
+                    div(class="col-lg-4 col-md-4 col-sm-4 col-xs-4")
+                        input(name='nameGroup' id='nameGroup' class="form-control required" type="text" placeholder='Номер группы')
+                    div(class="col-lg-2 col-md-2 col-sm-2 col-xs-2")
+                        input(name='yearAdmission' id='yearAdmission' class="form-control required" type="text" placeholder='Год зачисления')
+                    p
+                    div(class="col-lg-6 col-md-6 col-sm-6 col-xs-6")
+                        input(class="btn btn-success" type='submit', id="addGroup" value='Добавить')
+            br
+            ul(class="list-group")
+            each val in studyGroup
+                li(class="list-group-item serviceList" id = val.id ) #{val.name} (#{val.yearAdmission})
+                    i(class="caret fa fa-caret-down")
+                div(class="slide")
+                    br
+                    a(class="btn btn-dark" href='/studyGroup/' + val.id role="button") Изменить
+                    font()=" "
+                    a(class="btn btn-danger" href='/delGroup/' + val.id role="button") Удалить
+                    p
+
+
+
+
+
+
+
+
