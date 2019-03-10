@@ -61,12 +61,13 @@ router.get('/register', function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
       if (err) return next(err); // not connected!
+      //db.query("SELECT column_type FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'typeUser';", (err, rows) => {
       db.query("SELECT * FROM type_user", (err, rows) => {
         if (err) {
           return next(err);
         }
         rows.forEach(row => {
-          result.push({ id: row.id, name: row.type });
+          result.push({ id: row.id, name: row.name });
         });
         var studyGroups = [];
         db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
@@ -752,9 +753,35 @@ router.post("/regStudents", function(req, res, next) {
     var result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
+        db.query(`SELECT * from persons WHERE id IN (SELECT id_person from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) ;`, [req.body.studyGroup], (err, rows) => {
+        //db.query(`SELECT * FROM students INNER JOIN studyGroups ON students.Id_group = studyGroups.id
+        //WHERE students.Id_group = (SELECT id FROM studyGroups WHERE name=?);`, [req.body.studyGroup], (err, rows) => {
+            if (err) {
+                return next(err);
+            } else {
+                rows.forEach(row => {
+                    result.push({
+                        id: row.id,
+                        fullName:row.last_name + " " +row.first_name + " " +row.second_name
+                    });
+                });
+            }
+            console.log(result)
+            res.send(JSON.stringify(result));
+            db.release();
+            if (err) return next(err);
+        });
+    });
+});
 
-        db.query(`SELECT * FROM students INNER JOIN studyGroups ON students.Id_group = studyGroups.id
-        WHERE students.Id_group = (SELECT id FROM studyGroups WHERE name=?);`, [req.body.studyGroup], (err, rows) => {
+router.post("/regStudents", function(req, res, next) {
+    console.log(req.body.studyGroup)
+    var result = [];
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        db.query(`SELECT * from persons WHERE id IN (SELECT id_person from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) ;`, [req.body.studyGroup], (err, rows) => {
+            //db.query(`SELECT * FROM students INNER JOIN studyGroups ON students.Id_group = studyGroups.id
+            //WHERE students.Id_group = (SELECT id FROM studyGroups WHERE name=?);`, [req.body.studyGroup], (err, rows) => {
             if (err) {
                 return next(err);
             } else {

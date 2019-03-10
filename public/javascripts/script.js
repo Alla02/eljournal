@@ -45,21 +45,6 @@ $(document).ready(function () {
         $(this).next('.slide').slideToggle("slow");
     });
 
-
-    $("#SelectTypeReg").change(function () {
-        var label = a.value;
-        var sel = document.getElementById("SelectTypeReg");
-        var val = sel.options[sel.selectedIndex].text;
-        alert(val);
-        if (val=="Преподаватель") {
-            document.getElementById("selectGroup").style.display='none';
-        }
-        else {
-            document.getElementById("selectGroup").style.display='block';
-            if (val=="Студент" && val=="Куратор") document.getElementById("selectStudent").style.display='none';
-        }
-    });
-
     $("#selectGroup").change(function () {
         var studyGroup_ = $("#selectGroup option:selected").val();
         $.ajax({
@@ -68,35 +53,43 @@ $(document).ready(function () {
             data: jQuery.param({studyGroup: studyGroup_ }),
             dataType: "json"
         }).done(function (data) {
-            var sel = document.getElementById("SelectTypeReg");
-            var val = sel.options[sel.selectedIndex].text;
-            if (val=="Родитель") {$("#selectStudent").removeClass("div-none");
+            //$("#selectStudent").removeClass("div-none");
+            $('#student').find('option').remove().end();
                 for (var i in data) {
                     $('#student').append('<option>' + data[i].fullName + '</option>');
                 }
-            }
-            else $("#selectStudent").toggleClass("div-none");
-
         });
     });
+
 });
 
-/*
-//скрываем поле от всех, кроме преподавателей
+
+//скрываем поля
 function UserRegister(a) {
     var label = a.value;
     var sel = document.getElementById("SelectTypeReg");
     var val = sel.options[sel.selectedIndex].text;
     if (val=="Преподаватель") {
         document.getElementById("selectGroup").style.display='none';
+        document.getElementById("selectStudent").style.display='none';
     }
     else {
         document.getElementById("selectGroup").style.display='block';
-        if (val=="Студент" && val=="Куратор") document.getElementById("selectStudent").style.display='none';
+        if (val=="Куратор") {
+            document.getElementById("selectStudent").style.display='none';
+            document.getElementById("studyGroup").setAttribute("multiple","multiple");
+        }
+        if (val=="Студент") {
+            document.getElementById("studyGroup").removeAttribute("multiple");
+            document.getElementById("selectStudent").style.display='none';
+        }
+        if (val=="Родитель") {
+            document.getElementById("studyGroup").removeAttribute("multiple");
+            document.getElementById("selectStudent").style.display='block';
+        }
     }
 };
 
-*/
 
 
 
