@@ -751,43 +751,20 @@ router.post("/delStudent/:id", isLoggedIn, function(req, res, next) {
 router.post("/regStudents", function(req, res, next) {
     console.log(req.body.studyGroup)
     var result = [];
+    var result2 = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query(`SELECT * from persons WHERE id IN (SELECT id_person from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) ;`, [req.body.studyGroup], (err, rows) => {
-        //db.query(`SELECT * FROM students INNER JOIN studyGroups ON students.Id_group = studyGroups.id
-        //WHERE students.Id_group = (SELECT id FROM studyGroups WHERE name=?);`, [req.body.studyGroup], (err, rows) => {
+        //db.query(`SELECT * from persons WHERE id IN (SELECT id_person from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) ;`, [req.body.studyGroup], (err, rows) => {
+        db.query(`SELECT * FROM (SELECT id_person, id as idSt from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) AS s 
+                    INNER JOIN persons on persons.id = s.id_person;`, [req.body.studyGroup], (err, rows) => {
             if (err) {
                 return next(err);
             } else {
+                //console.log("rows "+rows);
                 rows.forEach(row => {
                     result.push({
                         id: row.id,
-                        fullName:row.last_name + " " +row.first_name + " " +row.second_name
-                    });
-                });
-            }
-            console.log(result)
-            res.send(JSON.stringify(result));
-            db.release();
-            if (err) return next(err);
-        });
-    });
-});
-
-router.post("/regStudents", function(req, res, next) {
-    console.log(req.body.studyGroup)
-    var result = [];
-    pool.getConnection(function(err, db) {
-        if (err) return next(err); // not connected!
-        db.query(`SELECT * from persons WHERE id IN (SELECT id_person from students WHERE id_group = (SELECT id from studygroups WHERE name =?)) ;`, [req.body.studyGroup], (err, rows) => {
-            //db.query(`SELECT * FROM students INNER JOIN studyGroups ON students.Id_group = studyGroups.id
-            //WHERE students.Id_group = (SELECT id FROM studyGroups WHERE name=?);`, [req.body.studyGroup], (err, rows) => {
-            if (err) {
-                return next(err);
-            } else {
-                rows.forEach(row => {
-                    result.push({
-                        id: row.id,
+                        idSt: row.idSt,
                         fullName:row.last_name + " " +row.first_name + " " +row.second_name
                     });
                 });

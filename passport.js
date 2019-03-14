@@ -25,8 +25,6 @@
                     var user = {};
                     user.id = row[0].id;
                     user.login = row[0].login;
-                    user.user_type = row[0].user_type;
-                    user.login = row[0].login;
                     user.typeUser = row[0].user_type;
                     user.email = row[0].email;
                     var sql2 = "select * from persons where id_user='" + row[0].id + "'";
@@ -75,7 +73,10 @@
 											if (err) {
 												return next(err);
 											}
-											user.password = hash;
+                                            var stgroup = [];
+                                            stgroup =  req.body.studyGroup;
+
+                                            user.password = hash;
                                             user.login = req.body.login;
                                             user.typeUser = req.body.user_type;
                                             user.first_name = req.body.first_name;
@@ -83,9 +84,10 @@
                                             user.last_name = req.body.last_name;
                                             user.user_type = req.body.user_type;
                                             user.birthyear = req.body.birthyear;
-                                            user.studyGroup = req.body.studyGroup;
+                                            //user.studyGroup = req.body.studyGroup;
                                             console.log(user.birthyear);
-                                            console.log("st" +req.body.studyGroup);
+                                            console.log("st " +stgroup);
+
                                             db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[user.login,user.password,user.typeUser,req.body.email], function (err) {
                                                 if (err) {
                                                     console.log(err);
@@ -117,7 +119,7 @@
                                                                                     if (err) {
                                                                                         console.log(err);
                                                                                     }
-                                                                                    console.log("insert into teacher")
+                                                                                    console.log("inserted into teacher")
                                                                                 })
                                                                             }
                                                                             else {
@@ -126,7 +128,7 @@
                                                                                         if (err) {
                                                                                             console.log(err);
                                                                                         }
-                                                                                        console.log("blabla")
+                                                                                        console.log("inserted into student")
                                                                                     })
                                                                                 }
                                                                                 else {
@@ -135,7 +137,32 @@
                                                                                             if (err) {
                                                                                                 console.log(err);
                                                                                             }
-                                                                                            console.log("insert into parent")
+                                                                                            console.log("inserted into parent")
+                                                                                            var studentsId = [];
+                                                                                            studentsId = req.body.student;
+                                                                                            console.log("studentsid " + studentsId);
+                                                                                            console.log("studentsidlength " + studentsId.length);
+                                                                                            if( typeof studentsId === 'string' ) {//если выбран один элемент, переводи его из строки в массив
+                                                                                                studentsId = [ studentsId ];
+                                                                                            }
+                                                                                            console.log("studentsidlength " + studentsId.length);
+                                                                                            if (studentsId.length != 0) {
+                                                                                                db.query("SELECT id FROM parents ORDER BY id DESC LIMIT 1;", function (err, row) {
+                                                                                                    var idParent = row[0].id;
+                                                                                                    console.log("idParent "+idParent);
+                                                                                                    if (idParent != 0){
+                                                                                                        studentsId.forEach(row => {
+                                                                                                            console.log("stgroupforeach "+row);
+                                                                                                            db.query("INSERT into parentstudent (id_parent,id_student) values ('"+idParent+"',?);", [row],function (err, row) {
+                                                                                                                if (err) {
+                                                                                                                    console.log(err);
+                                                                                                                }
+                                                                                                                console.log("inserted into parentstudent");
+                                                                                                            })
+                                                                                                        });
+                                                                                                    }
+                                                                                                })
+                                                                                            }
                                                                                         })
                                                                                     }
                                                                                     else {
@@ -144,8 +171,31 @@
                                                                                                 if (err) {
                                                                                                     console.log(err);
                                                                                                 }
-                                                                                                console.log("insert into curator")
-                                                                                            })
+                                                                                                console.log("inserted into curator")
+                                                                                                console.log("lenghtreqgroup " + stgroup.length);
+                                                                                                console.log("reqbodygroup: " + req.body.studyGroup);
+                                                                                                if( typeof stgroup === 'string' ) {//если выбран один элемент, переводи его из строки в массив
+                                                                                                    stgroup = [ stgroup ];
+                                                                                                }
+                                                                                                console.log("lenghtreqgroup " + stgroup.length);
+                                                                                                if (stgroup.length != 0) {
+                                                                                                    db.query("SELECT id FROM curators ORDER BY id DESC LIMIT 1;", function (err, row) {
+                                                                                                        var idCurator = row[0].id;
+                                                                                                        console.log("idCurator "+idCurator);
+                                                                                                        if (idCurator != 0){
+                                                                                                            stgroup.forEach(row => {
+                                                                                                                console.log("stgroupforeach "+row);
+                                                                                                                db.query("INSERT into groupcurator (id_curator,id_group) values ('"+idCurator+"',(SELECT id from studyGroups WHERE name=?));", [row],function (err, row) {
+                                                                                                                    if (err) {
+                                                                                                                        console.log(err);
+                                                                                                                    }
+                                                                                                                    console.log("inserted into groupcurator");
+                                                                                                                })
+                                                                                                            });
+                                                                                                        }
+                                                                                                    })
+                                                                                                }
+                                                                                                })
                                                                                         }
                                                                                     }
                                                                                 }

@@ -56,7 +56,7 @@ $(document).ready(function () {
             //$("#selectStudent").removeClass("div-none");
             $('#student').find('option').remove().end();
                 for (var i in data) {
-                    $('#student').append('<option>' + data[i].fullName + '</option>');
+                    $('#student').append('<option value="'+data[i].idSt+'">' + data[i].fullName + '</option>');
                 }
         });
     });
