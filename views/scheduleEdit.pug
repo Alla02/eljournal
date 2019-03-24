@@ -1,0 +1,85 @@
+extends layout
+block variables
+    include variables
+block content
+    main.my-form
+        .cotainer
+            .row.justify-content-center
+                .col-md-7
+                    .card
+                        .card-header Расписание
+                        .card-body
+                            div(class="tab-pane active" id="tab2")
+                                .table-responsive
+                                    table.table.table-bordered
+                                        tbody
+                                            tr
+                                                th
+                                                    each val in weekday
+                                                        th= val.name
+                                                tbody
+                                                    each val in times
+                                                        tr
+                                                        th.val.time #{val.time}
+                .col-md-4
+                    .card
+                        .card-header Редактировать расписание
+                        .card-body
+                            form(name='my-form', action='/table', method='post')
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Группа
+                                    .col-md-6
+                                        select(type='text', name='selectStudyGroup' class='form-control' id='selectStudyGroup')
+                                            each val in studyGroups
+                                                option(value=val.id) #{val.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right День недели:
+                                    .col-md-6
+                                        select(type='text', name='weekday' class='form-control' id='weekday')
+                                            each val in weekday
+                                                option(value=val.id) #{val.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Время:
+                                    .col-md-6
+                                        select(type='text', name='time' class='form-control' id='time')
+                                            each val in times
+                                                option(value=val.id) #{val.time}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Предмет:
+                                    .col-md-6
+                                        select(type='text', name='subject' class='form-control' id='subject')
+                                            each val in subjects
+                                                option(value=val.id) #{val.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Преподаватель:
+                                    .col-md-6
+                                        select(type='text', name='teacher' class='form-control' id='teacher')
+                                            each val in teachers
+                                                option(value=val.id) #{val.lastname} #{val.firstname} #{val.secondname}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Тип занятия:
+                                    .col-md-6
+                                        select(type='text', name='typeSubject' class='form-control' id='typeSubject')
+                                            each value in typesubject
+                                                option #{value.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Тип недели:
+                                    .col-md-6
+                                        select(type='text', name='typeWeek' class='form-control' id='typeWeek')
+                                            each value in typeweek
+                                                option #{value.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Семестр:
+                                    .col-md-6
+                                        select(type='text', name='semester' class='form-control' id='semester')
+                                            each value in semester
+                                                option #{value.name}
+                                .col-md-6.offset-md-5
+                                    button.btn.btn-primary(type='submit')
+                                        | Сохранить
+
+                            #message
+                            if message
+                            h1.text-center.error-message #{message}
+
+

@@ -1,0 +1,38 @@
+extends layout
+block variables
+    include variables
+block append scripts
+    script(src="/javascripts/scriptAttendance.js")
+block content
+    main.my-form
+        .cotainer
+            .row.justify-content-center
+                .col-md-10
+                    .card
+                        .card-header Посещаемость
+                        .card-body
+                            div(class="tab-pane active" id="tab2")
+                                input(type='text', name='day' class='form-control', placeholder='Выбрать день' id="day")
+                                table#table1.table.table-bordered.table-responsive
+                                    tbody
+                                        tr
+                                            th
+                                                each val in weekday
+                                                    th(id=val.name)= val.name
+                                        tr#subjects
+                                            tbody
+                                                each val in listStudents
+                                                    tr(class="check")
+                                                        td(id=val.id) #{val.lastname} #{val.firstname} #{val.secondname}
+                                            tr(class="check2")
+                                                td Выбрать всех
+
+                            form(name='my-form', action='/saveAttendance', method='post')
+                                .col-md-6.offset-md-4
+                                    button.btn.btn-primary(type='submit')
+                                        | Сохранить
+                            #message
+                            if message
+                            h1.text-center.error-message #{message}
+
+
