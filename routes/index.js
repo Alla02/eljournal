@@ -6,6 +6,7 @@ var pool = mysql.createPool(config.dbconnection);
 
 var passport = require("passport");
 var bcrypt = require("bcryptjs");
+var fs = require('fs');
 
 /*auth part*/
 isLoggedIn = function(req, res, next) {
@@ -882,7 +883,7 @@ router.get('/table', function(req, res, next) {
         });
     });
 });
-
+/*
 router.post("/table", function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err);
@@ -897,6 +898,37 @@ router.post("/table", function(req, res, next) {
                             var idSubjTeacher = row[0].id;
                             if (idSubjTeacher != 0) {
                                 db.query("INSERT into schedule (id_group,dayOfWeek,numPair,typeWeek,id_subjteacher,id_semester) values (?,?,?,?,?,?);", [req.body.selectStudyGroup, req.body.weekday, req.body.time, req.body.typeWeek, idSubjTeacher, req.body.semester], function (err) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    console.log("inserted into schedule");
+                                })
+                            }
+                        });
+                    }
+                    res.redirect("/table");
+                });
+            }
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});*/
+
+router.post("/table", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("SELECT id FROM teachers WHERE id_person=?;",[req.body.teacher], function (err, row) {
+            if (err) return next(err);
+            else { var idTeacher = row[0].id;
+                db.query(`INSERT INTO subjteacher(id_subject, id_teacher, type_subject, id_semester, id_group) VALUES (?,?,?);`,[req.body.subject,idTeacher,req.body.typeSubject,req.body.semester,req.body.selectStudyGroup], err => {
+                    if (err) return next(err);
+                    else {
+                        db.query("SELECT id FROM subjteacher ORDER BY id DESC LIMIT 1;", function (err, row) {
+                            if (err) return next(err);
+                            var idSubjTeacher = row[0].id;
+                            if (idSubjTeacher != 0) {
+                                db.query("INSERT into schedule (dayOfWeek,numPair,typeWeek,id_subjteacher) values (?,?,?,?);", [req.body.weekday, req.body.time, req.body.typeWeek, idSubjTeacher], function (err) {
                                     if (err) {
                                         console.log(err);
                                     }
@@ -949,7 +981,7 @@ router.get('/attendance/:id', function(req, res, next) {
                         lastname: lastname,firstname: firstname,secondname: secondname,type_user: type_user,email: email,
                         message: req.flash("У этой группы нет студентов") });
                     else {
-                        db.query("SELECT * FROM schedule WHERE id_group=?",req.params.id, (err, rows) => {
+                        db.query("SELECT * FROM schedule WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?)",req.params.id, (err, rows) => {
                             if (err) return next(err);
                             if (rows) res.render("attendance", {title: "Посещаемость группы",weekday: weekday,
                                 times: times,listStudents: listStudents,login: login,
@@ -960,6 +992,7 @@ router.get('/attendance/:id', function(req, res, next) {
                                     curGroup.push({ id: row.id, dayOfWeek: row.dayOfWeek, numPar: row.numPair, typeWeek: row.typeWeek, subjteacher: row.id_subjteacher, semester: row.id_semester, teacher: row.id_teacher, subject: row.idsubject });
                                 });
                                 var subjteachersarr = curGroup.map(function (el) { return el.subjteacher; });
+                                console.log("curGro "+curGroup);
                                 var subjects = [];
                                 //db.query("SELECT name from subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id In ("+subjteachersarr+"));", (err, rows) => {
                                 db.query("SELECT name from subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id In ("+subjteachersarr+"));", (err, rows) => {
@@ -1034,16 +1067,16 @@ router.get('/attendance/:id', function(req, res, next) {
 router.post("/fillAttendance", function(req, res, next) {
     //req.body.group  - AJAX data from /table
     var result = [];
-    let str = `SELECT schedule.id, id_group, studyGroups.name as groupName,dayOfWeek, numPair,
-    schedule.id_teacher as id_teacher, persons.second_name as secondname, persons.last_name as lastname, 
-    persons.first_name as firstname, schedule.id_subject as id_subject, subjects.name as subjectName, typeWeek, subjteacher.type_subject as typesubject
-    FROM schedule 
-    INNER JOIN studyGroups ON studyGroups.id=schedule.id_group
-    INNER JOIN teachers ON teachers.id=schedule.id_teacher  
-    INNER JOIN subjects ON subjects.id=schedule.id_subject
+    let str = `SELECT subjteacher.id, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
+    subjects.name as subjectName, studyGroups.name as groupName, persons.second_name as secondname, 
+    persons.last_name as lastname, persons.first_name as firstname, schedule.id as schid, schedule.dayOfWeek, schedule.numPair, schedule.typeWeek
+    FROM subjteacher 
+    INNER JOIN subjects ON subjects.id=subjteacher.id_subject
+    INNER JOIN studyGroups ON studyGroups.id=subjteacher.id_group
+    INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
     INNER JOIN persons ON persons.id=teachers.id_person
-    INNER JOIN subjteacher ON subjteacher.id=schedule.id_subjteacher
-    WHERE id_group=3`;
+    INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
+    WHERE id_group=?`;
     console.log("blablabla");
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
@@ -1080,5 +1113,137 @@ router.post("/fillAttendance", function(req, res, next) {
         });
     });
 });
+
+router.get("/getSchedule", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var jsonData;
+        let rawdata = fs.readFileSync('schedulejson.json');
+        var jsonData = JSON.parse(rawdata);
+        jsonData.forEach(data => {
+            db.query("SELECT teachers.id as tid FROM persons INNER JOIN teachers ON persons.id = teachers.id_person WHERE first_name=? AND last_name=? AND second_name=?;",[data.firstname,data.lastname,data.secondname], function (err, row) {
+                if (err) return next(err);
+                else { console.log(data.firstname)
+                    console.log(row)
+                    var idTeacher = row[0].tid;
+                    console.log(idTeacher)
+                    db.query(`SELECT id FROM studygroups WHERE name=?;`,[data.groupName], function (err, row) {
+                        if (err) return next(err);
+                        else {var idGroup = row[0].id;
+                            console.log(idGroup)
+                            db.query("SELECT id FROM subjects WHERE name=?;",[data.subjectName], function (err, row) {
+                                if (err) return next(err);
+                                else {var idSubj = row[0].id;
+                                    console.log(idSubj)
+                                    db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [data.beginDatePairs, data.beginDatePairs], function (err) {
+                                        if (err) console.log(err);
+                                        else{ var idSemester = row[0].id;
+                                            console.log(idSemester)
+                                            db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [data.beginDatePairs, data.beginDatePairs], function (err) {
+                                                if (err) console.log(err);
+                                                else{ var idSemester = row[0].id;
+                                                    console.log(idSemester)
+                                                    res.render("scheduleEdit", {
+                                                        title: "Удалить преподавателя"
+                                                    });
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
+        db.release();
+        if (err) return next(err);
+        // Don't use the db here, it has been returned to the pool.
+    });
+});
+
+router.get("/getSubjects", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var jsonData;
+        let rawdata = fs.readFileSync('schedulejson.json');
+        var jsonData = JSON.parse(rawdata);
+        jsonData.forEach(row => {
+            db.query("INSERT IGNORE INTO subjects (name) VALUES (?);",[row.subjectName], function(err, rows){
+                if (err) return next(err);
+            });
+        });
+        db.release();
+        if (err) return next(err);
+        // Don't use the db here, it has been returned to the pool.
+    });
+});
+
+function generateLogin() {
+    var length = 8,
+        charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+        retVal = "";
+    for (var i = 0, n = charset.length; i < length; ++i) {
+        retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
+}
+
+router.get("/regAllTeachers", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var jsonData;
+        let rawdata = fs.readFileSync('schedulejson.json');
+        var jsonData = JSON.parse(rawdata);
+        bcrypt.hash("123", 5, function (err, hash) {
+            if (err) return next(err);
+            jsonData.forEach(data => {
+                var typeUser = "Преподаватель";
+                var pass = hash;
+                var login = generateLogin();
+                var email = generateLogin();
+                console.log(data.firstname)
+                db.query("SELECT * FROM persons where first_name=? AND last_name=? AND second_name=?;",[data.firstname,data.lastname,data.secondname], function (err, rows) {
+                    if (rows.length == 0) {
+                    db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[login,pass,typeUser,email], function (err) {
+                        if (err) console.log(err);
+                        else {
+                            db.query("SELECT id FROM users ORDER BY id DESC LIMIT 1;", function (err, row) {
+                                console.log("Last inserted id is: " + row[0].id);
+                                if (err) console.log(err);
+                                else{
+                                    var idUser = row[0].id;
+                                    db.query("INSERT into persons (first_name,last_name,second_name,id_user) values (?,?,?,?);",[data.firstname,data.lastname,data.secondname,idUser], function (err) {
+                                        if (err) console.log(err);
+                                        else {
+                                            db.query("SELECT id FROM persons ORDER BY id DESC LIMIT 1;", function (err, row) {
+                                                console.log("Last inserted personsid is: " + row[0].id);
+                                                if (err) console.log(err);
+                                                else {
+                                                    var idPerson = row[0].id;
+                                                    var rand = 1000 - 0.5 + Math.random() * (9999 - 1000 + 1)
+                                                    rand = Math.round(rand);
+                                                        db.query("INSERT into teachers (approval_code, id_person) values (?,?);", [rand, idPerson], function (err) {
+                                                            if (err) console.log(err);
+                                                            console.log("inserted into teacher")
+                                                        })
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                });
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
 
 module.exports = router;

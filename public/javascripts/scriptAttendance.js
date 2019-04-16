@@ -11,7 +11,7 @@ $(document).ready(function () {
         $('#day').val('');
         $('#day').attr("placeholder","Выбрать день");
     });
-    
+
     function attendance() {
         var url = window.location.pathname;
         var groupId_ = url.substring(url.lastIndexOf('/') + 1);
@@ -57,7 +57,7 @@ $(document).ready(function () {
                 $('#table1 input:checkbox').change(function(e) {
                     if(this.checked) {
                         var value = parseInt($(this).closest('td').next('td').text(), 10);
-                        //alert(value);
+                        alert(value);
                         // above will convert it from a string to an integer
                     }
                     else {
