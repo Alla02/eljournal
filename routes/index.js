@@ -7,6 +7,7 @@ var pool = mysql.createPool(config.dbconnection);
 var passport = require("passport");
 var bcrypt = require("bcryptjs");
 var fs = require('fs');
+//var async = require("async")
 
 /*auth part*/
 isLoggedIn = function(req, res, next) {
@@ -1198,47 +1199,94 @@ router.get("/regAllTeachers", function(req, res, next) {
         var jsonData = JSON.parse(rawdata);
         bcrypt.hash("123", 5, function (err, hash) {
             if (err) return next(err);
-            jsonData.forEach(data => {
-                var typeUser = "Преподаватель";
-                var pass = hash;
-                var login = generateLogin();
-                var email = generateLogin();
-                console.log(data.firstname)
-                db.query("SELECT * FROM persons where first_name=? AND last_name=? AND second_name=?;",[data.firstname,data.lastname,data.secondname], function (err, rows) {
-                    if (rows.length == 0) {
-                    db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[login,pass,typeUser,email], function (err) {
-                        if (err) console.log(err);
-                        else {
-                            db.query("SELECT id FROM users ORDER BY id DESC LIMIT 1;", function (err, row) {
-                                console.log("Last inserted id is: " + row[0].id);
-                                if (err) console.log(err);
-                                else{
-                                    var idUser = row[0].id;
-                                    db.query("INSERT into persons (first_name,last_name,second_name,id_user) values (?,?,?,?);",[data.firstname,data.lastname,data.secondname,idUser], function (err) {
-                                        if (err) console.log(err);
-                                        else {
-                                            db.query("SELECT id FROM persons ORDER BY id DESC LIMIT 1;", function (err, row) {
-                                                console.log("Last inserted personsid is: " + row[0].id);
-                                                if (err) console.log(err);
-                                                else {
-                                                    var idPerson = row[0].id;
-                                                    var rand = 1000 - 0.5 + Math.random() * (9999 - 1000 + 1)
-                                                    rand = Math.round(rand);
-                                                        db.query("INSERT into teachers (approval_code, id_person) values (?,?);", [rand, idPerson], function (err) {
-                                                            if (err) console.log(err);
-                                                            console.log("inserted into teacher")
-                                                        })
-                                                }
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
+            async function checkIfExist(firstname, lastname, secondname) {
+                return new Promise(function(res) {
+                    db.query("SELECT * FROM persons where first_name=? AND last_name=? AND second_name=?;", [firstname, lastname, secondname], function (err, rows) {
+                        //console.log("1 " + rows.length);
+                        console.log("1 " + firstname+ lastname+ secondname);
+                        if (err) return next(err);
+                        if (rows.length == 0) res(0);
+                        else res(1);
                     });
+                })
+            }
+
+            async function insertIntoUsers(login, pass, typeUser, email) {
+                return new Promise(function(res) {
+                    db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);", [login, pass, typeUser, email], function (err) {
+                        console.log("2");
+                        if (err) return next(err);
+                        res();
+                    });
+                })
+            }
+
+            async function selectUserId() {
+                return new Promise(function(res) {
+                    db.query("SELECT id FROM users ORDER BY id DESC LIMIT 1;", function (err, row) {
+                        if (err) return next(err);
+                        console.log("Last inserted id is: " + row[0].id);
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            async function insertIntoPersons(firstname, lastname, secondname, idUser) {
+                return new Promise(function(res) {
+                    db.query("INSERT into persons (first_name,last_name,second_name,id_user) values (?,?,?,?);", [firstname, lastname, secondname, idUser], function (err) {
+                        console.log("four");
+                        if (err) return next(err);
+                        res();
+                    });
+                })
+            }
+
+            async function selectPersonId() {
+                return new Promise(function(res) {
+                    db.query("SELECT id FROM persons ORDER BY id DESC LIMIT 1;", function (err, row) {
+                        if (err) return next(err);
+                        console.log("five");
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            async function insertIntoTeachers(idPerson) {
+                return new Promise(function(res) {
+                    var rand = 1000 - 0.5 + Math.random() * (9999 - 1000 + 1)
+                    rand = Math.round(rand);
+                    db.query("INSERT into teachers (approval_code, id_person) values (?,?);", [rand, idPerson], function (err) {
+                        console.log("inserted into teacher")
+                        if (err) console.log(err);
+                        res();
+                    })
+                })
+            }
+
+            async function regAll() {
+                for (var i = 0; i< jsonData.length; i++){
+                    var typeUser = "Преподаватель";
+                    var pass = hash;
+                    var login = generateLogin();
+                    var email = generateLogin();
+                    //var i = 0;
+                    console.log(jsonData[i].firstname, jsonData[i].lastname, jsonData[i].secondname);
+                    var res;
+                    res = await checkIfExist(jsonData[i].firstname, jsonData[i].lastname, jsonData[i].secondname);
+                    //res.then(r=>checkIfExist(jsonData[i].firstname, jsonData[i].lastname, jsonData[i].secondname));
+                    //console.log("res "+res);
+                    if (res == 1) continue;
+                    else {
+                        await insertIntoUsers(login, pass, typeUser, email);
+                        var userId = await selectUserId();
+                        console.log(userId);
+                        await insertIntoPersons(jsonData[i].firstname, jsonData[i].lastname, jsonData[i].secondname,userId);
+                        var personId = await selectPersonId();
+                        await insertIntoTeachers(personId);
+                    }
                 }
-                });
-            });
+            }
+            regAll();
         });
         db.release();
         if (err) return next(err);
