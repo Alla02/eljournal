@@ -922,7 +922,7 @@ router.post("/table", function(req, res, next) {
         db.query("SELECT id FROM teachers WHERE id_person=?;",[req.body.teacher], function (err, row) {
             if (err) return next(err);
             else { var idTeacher = row[0].id;
-                db.query(`INSERT INTO subjteacher(id_subject, id_teacher, type_subject, id_semester, id_group) VALUES (?,?,?);`,[req.body.subject,idTeacher,req.body.typeSubject,req.body.semester,req.body.selectStudyGroup], err => {
+                db.query(`INSERT INTO subjteacher(id_subject, id_teacher, type_subject, id_semester, id_group) VALUES (?,?,?,?,?);`,[req.body.subject,idTeacher,req.body.typeSubject,req.body.semester,req.body.selectStudyGroup], err => {
                     if (err) return next(err);
                     else {
                         db.query("SELECT id FROM subjteacher ORDER BY id DESC LIMIT 1;", function (err, row) {
@@ -1115,6 +1115,7 @@ router.post("/fillAttendance", function(req, res, next) {
     });
 });
 
+/*
 router.get("/getSchedule", function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
@@ -1163,6 +1164,7 @@ router.get("/getSchedule", function(req, res, next) {
         // Don't use the db here, it has been returned to the pool.
     });
 });
+*/
 
 router.get("/getSubjects", function(req, res, next) {
     pool.getConnection(function(err, db) {
@@ -1172,6 +1174,23 @@ router.get("/getSubjects", function(req, res, next) {
         var jsonData = JSON.parse(rawdata);
         jsonData.forEach(row => {
             db.query("INSERT IGNORE INTO subjects (name) VALUES (?);",[row.subjectName], function(err, rows){
+                if (err) return next(err);
+            });
+        });
+        db.release();
+        if (err) return next(err);
+        // Don't use the db here, it has been returned to the pool.
+    });
+});
+
+router.get("/getGroups", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var jsonData;
+        let rawdata = fs.readFileSync('schedulejson.json');
+        var jsonData = JSON.parse(rawdata);
+        jsonData.forEach(row => {
+            db.query("INSERT IGNORE INTO studyGroups (name) VALUES (?);",[row.groupName], function(err, rows){
                 if (err) return next(err);
             });
         });
@@ -1191,7 +1210,7 @@ function generateLogin() {
     return retVal;
 }
 
-router.get("/regAllTeachers", function(req, res, next) {
+router.get("/regAllTeachers", function(req, res, next) { //регистрация преподавателей из json файла
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         var jsonData;
@@ -1293,5 +1312,109 @@ router.get("/regAllTeachers", function(req, res, next) {
     });
 });
 
+router.get("/getSchedule", function(req, res, next) { //регистрация преподавателей из json файла
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var jsonData;
+        let rawdata = fs.readFileSync('schedulejson.json');
+        var jsonData = JSON.parse(rawdata);
+            function selectIdTeacher(firstname, lastname, secondname) {
+                return new Promise(function(res) {
+                    db.query("SELECT teachers.id as tid FROM persons INNER JOIN teachers ON persons.id = teachers.id_person WHERE first_name=? AND last_name=? AND second_name=?;",[firstname,lastname,secondname], function (err, row) {
+                        console.log("1 ");
+                        if (err) return next(err);
+                        return res(row[0].tid)
+                        //res(row[0].tid);
+                    });
+                })
+            }
+
+            function selectIdSubject(name) {
+                return new Promise(function(res) {
+                    db.query("SELECT id FROM subjects WHERE name=?;",[name], function (err, row) {
+                        console.log("2");
+                        if (err) return next(err);
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            function selectIdGroup(groupName) {
+                return new Promise(function(res) {
+                    db.query(`SELECT id FROM studygroups WHERE name=?;`,[groupName], function (err, row) {
+                        if (err) return next(err);
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            function selectIdSemester(beginDatePairs) {
+                return new Promise(function(res) {
+                    db.query("SELECT id FROM semester WHERE start <= ? AND end >= ?;", [beginDatePairs, beginDatePairs], function (err, row) {
+                        console.log("four");
+                        if (err) return next(err);
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            function insertSubjTeacher(idSubject,idTeacher,typeSubject,idSemester,idGroup) {
+                return new Promise(function(res) {
+                    db.query(`INSERT INTO subjteacher(id_subject, id_teacher, type_subject, id_semester, id_group) VALUES (?,?,?,?,?);`,[idSubject,idTeacher,typeSubject,idSemester,idGroup], err => {
+                        console.log("inserted into subjteacher")
+                        if (err) console.log(err);
+                        res();
+                    })
+                })
+            }
+
+            async function selectidSubjTeacher() {
+                return new Promise(function(res) {
+                    db.query("SELECT id FROM subjteacher ORDER BY id DESC LIMIT 1;", function (err, row) {
+                        if (err) return next(err);
+                        console.log("five");
+                        res(row[0].id);
+                    });
+                })
+            }
+
+            function insertSchedule(weekday, time, typeWeek, idSubjTeacher) {
+                return new Promise(function(res) {
+                    db.query("INSERT into schedule (dayOfWeek,numPair,typeWeek,id_subjteacher) values (?,?,?,?);", [weekday, time, typeWeek, idSubjTeacher], function (err) {
+                        console.log("inserted into schedule")
+                        if (err) console.log(err);
+                        res();
+                    })
+                })
+            }
+
+            async function getAll() {
+                for (var i = 0; i< jsonData.length; i++){
+                    //var i = 0;
+                    var idTeacher, idGroup, idSemester, typeWeek;
+                    var idSubject;
+                    //console.log(idTeacher, idSubject);
+                    await Promise.all([selectIdTeacher(jsonData[i].firstname, jsonData[i].lastname, jsonData[i].secondname),
+                        selectIdSubject(jsonData[i].subjectName),selectIdGroup(jsonData[i].groupName),selectIdSemester(jsonData[i].beginDatePairs)]).then(results => {
+                        idTeacher = results[0];
+                        idSubject = results[1];
+                        idGroup = results[2];
+                        idSemester =results[3];
+                    });
+                    console.log(idTeacher,idSubject,idGroup,idSemester);
+                    await insertSubjTeacher(idSubject,idTeacher,jsonData[i].typeSubjectName,idSemester,idGroup);
+                    var idSubjTeacher = await selectidSubjTeacher();
+                    var w = jsonData[i].week;
+                    if (w.length === 0) typeWeek = "Обе";
+                    if (w === "верхняя") typeWeek = "Верхняя";
+                    if (w === "нижняя") typeWeek = "Нижняя";
+                    insertSchedule(jsonData[i].weekdayId, jsonData[i].timeId, typeWeek, idSubjTeacher);
+                }
+            }
+            getAll();
+        db.release();
+        if (err) return next(err);
+    });
+});
 
 module.exports = router;
