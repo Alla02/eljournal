@@ -60,4 +60,103 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+
+var currentWeek,selectedWeek;
+global.updateWeek = function() {
+  pool.getConnection(function (err, db) {
+    var result = [];
+    if (err) {
+      console.log(err);
+    } // not connected!
+    else {
+      db.query(`SELECT * FROM semester ORDER BY id DESC LIMIT 1;`, (err, rows) => {
+        if (err) {
+          console.log(err);
+        }
+        else {
+          rows.forEach(row => {
+            result.push({
+              begin_date: row.start,
+              end_date: row.end,
+              week: row.week
+            });
+          });
+
+          app.locals.dateMob = getDate(result[0].begin_date, result[0].week,)[0];
+          app.locals.date = getDate(result[0].begin_date, result[0].week,)[0];
+          app.locals.curweek = getDate(result[0].begin_date, result[0].week,)[1];
+          //app.locals.dateBeginSemester = result[0].begin_date;
+          //app.locals.dateEndSemester = result[0].end_date;
+          currentWeek = app.locals.curweek;
+          //dateBeginSemester = app.locals.dateBeginSemester;
+          //dateEndSemester = app.locals.dateEndSemester;
+        }
+      });
+    }
+
+  });
+};
+
+updateWeek();
+function getDate(begin_date,week) {
+  var day = ("Воскресенье", "Понедельник", "Вторник",
+      "Среда", "Четверг", "Пятница", "Суббота");
+  var d = new Date();
+  var month = ["января", "февраля", "марта", "апреля", "мая", "июня",
+      "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+  var TODAY = day[d.getDay()] + " " + d.getDate() + " " + month[d.getMonth()]
+      + " " + d.getFullYear() + " г.";
+
+  var info,curweek;
+
+  var startWeek = week;
+
+  var dateCurrent = new Date();
+
+  var dateBegin  = new Date(begin_date);
+  var timeBegin = dateBegin.getTime();
+  var dayBegin = dateBegin.getDay();
+  var differenceDay = Math.floor ((dateCurrent - timeBegin) / 8.64e7) + (dayBegin ? dayBegin - 1 : 6);
+
+  var currentOfWeek =  (Math.floor(differenceDay / 7) % 2);
+  //console.log("current "+currentOfWeek);
+  //console.log("week "+startWeek);
+  if (currentOfWeek ===0){
+    if(startWeek ==="Верхняя"){
+      info = "Верхняя неделя";
+      curweek = "Верхняя"
+    }
+    else{
+      info = "Нижняя неделя";
+      curweek = "Нижняя"
+    }
+  }
+  else {
+    if(startWeek ==="Верхняя"){
+      info = "Нижняя неделя";
+      curweek = "Нижняя"
+    }
+    else{
+      info = "Верхняя неделя";
+      curweek = "Верхняя"
+    }
+  }
+
+  return [TODAY+' '+'('+info+')',curweek];
+}
+
+global.getCurrentWeek = function() {
+  if(currentWeek===undefined){
+    updateWeek();
+    currentWeek = app.locals.week;
+  }
+
+  return currentWeek;
+};
+
+module.exports = {
+  getCurrentWeek: getCurrentWeek
+};
+
 module.exports = app;

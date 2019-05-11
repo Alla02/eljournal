@@ -1,59 +1,77 @@
 $(document).ready(function () {
     $(function(){
         moment.locale('ru');
-        $('#day').daterangepicker({
+        $('#selectDay').daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
             locale: {
                 format: 'YYYY-MM-DD'
             },
         });
-        $('#day').val('');
-        $('#day').attr("placeholder","Выбрать день");
+        $('#selectDay').val('');
+        $('#selectDay').attr("placeholder","Выбрать день");
     });
 
-    function attendance() {
+
+    function attendance(day, seldate) {
         var url = window.location.pathname;
         var groupId_ = url.substring(url.lastIndexOf('/') + 1);
         $.ajax({
             type: "POST",
             url: "/fillAttendance",
-            data: jQuery.param({id_group: groupId_}),
+            data: jQuery.param({id_group: groupId_,selecteddate: seldate, day:day}),
             dataType: "json"
         }).done(function (data) {
             let table = document.getElementById("table1");
             var dayOfWeek = [];
-            var subjectName = [];
+            var subjectName = []; var nameDay;
             var day1= 0; var day2= 0; var day3= 0;
             var day4= 0; var day5= 0; var day6= 0;
             for (var i in data) {
                 dayOfWeek.push(data[i].dayOfWeek);
                 subjectName.push(data[i].subjectName);
                 //подсчитываем количество предметов за один день для настройки объединения
+                /*
                 if (data[i].dayOfWeek==1) day1 = day1+1;
                 if (data[i].dayOfWeek==2) day2 = day2+1;
                 if (data[i].dayOfWeek==3) day3 = day3+1;
                 if (data[i].dayOfWeek==4) day4 = day4+1;
                 if (data[i].dayOfWeek==5) day5 = day5+1;
-                if (data[i].dayOfWeek==6) day6 = day6+1;
+                if (data[i].dayOfWeek==6) day6 = day6+1;*/
             }
+            if (day===1) nameDay="Понедельник";
+            if (day===2) nameDay="Вторник";
+            if (day===3) nameDay="Среда";
+            if (day===4) nameDay="Четверг";
+            if (day===5) nameDay="Пятница";
+            if (day===6) nameDay="Суббота";
+            $('#weekd').attr('colspan',subjectName.length).text(nameDay);
+            $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend').remove().end();
             if (dayOfWeek.length){
-                $([Понедельник]).attr('colspan',day1);
+                /*$([Понедельник]).attr('colspan',day1);
                 $([Вторник]).attr('colspan',day2);
                 $([Среда]).attr('colspan',day3);
                 $([Четверг]).attr('colspan',day4);
                 $([Пятница]).attr('colspan',day5);
-                $([Суббота]).attr('colspan',day6);
-                $('#subjects').append('<td></td>');
+                $([Суббота]).attr('colspan',day6);*/
+                //$('#subjects, .check, .check2').remove();
+                $('#subjects').append('<td class="typeLection"></td>');
                 for (var i in data) {
-
-               // $('#Понедельник').append("<tr><td>1</td><td>Thomas</td></tr>");
-                if (data[i].typesubject=="практика") $('#subjects').append('<td id="'+data[i].subjectId+'"class="typesPractice">'+data[i].subjectName+'</td>');
-                else $('#subjects').append('<td id="'+data[i].subjectId+'"class="typesLection">'+data[i].subjectName+'</td>');
-                $('.check').append('<td><input type="checkbox"></td>');
-                $('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
+                if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].subjectId+'"class="typePractice">'+data[i].subjectName+'</td>');
+                else $('#subjects').append('<td id="'+data[i].subjectId+'"class="typeLection">'+data[i].subjectName+'</td>');
+                $('.check').append('<td class="attend"><input type="checkbox" class="check1"</td>');
+                $('.check2').append('<td class="attend"><input type="checkbox" class="chkParent"></td>');
 
                 }
+                $('.chkParent').on("change", function() {
+                    var $cb = $(this),
+                        $th = $cb.closest("td"), // get parent th
+                        col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
+                    //alert(col);
+                    $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
+                });
+
+                /*
                 $('#table1 input:checkbox').change(function(e) {
                     if(this.checked) {
                         var value = parseInt($(this).closest('td').next('td').text(), 10);
@@ -63,76 +81,89 @@ $(document).ready(function () {
                     else {
                         // same as above? Seems redundant
                     }
-                });
+                });*/
+                /*
+                var tab = document.getElementsByTagName("table")[0];
+                var cells = tab.getElementsByTagName("td"); //
+                var day = document.getElementsByName("selectDay");
+
+
+                for(var i = 1; i < cells.length; i++){
+                    // Cell Object
+                    var cell = cells[i];
+                    // Track with onclick
+                    cell.onclick = function(){
+                        //var cellIndex  = this.cellIndex + 1;
+                        //var rowIndex = this.parentNode.rowIndex + 1;
+                        var column = $(this).index();
+                        var idSubj = $('#subjects').find('td').eq(column).attr("id");
+                        var idStud = $(this).parent().attr("id")
+                        console.log(idSubj +" "+ idStud)
+                    }
+                }*/
+
 
                 //$("#table1 tr td:nth-child(1) input[type=checkbox]").prop("checked", true);
+                /*
+                $('table [type="checkbox"]').each(function(i, chk) {
+                    if (chk.checked) {
+                        console.log("Checked!", i, chk);
+                        var column = $(chk).index();
+                        console.log(column);
+                        var idSubj = $('#subjects').find('td').eq(column).attr("id");
+                        var idStud = $(this).parent().attr("id")
+                        console.log(idSubj +" "+ idStud)
+                    }
+                });*/
 
-                $('.chkParent').on("change", function() {
-                    var $cb = $(this),
-                        $th = $cb.closest("td"), // get parent th
-                        col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
-                    alert(col);
-                    $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
-                });
             }
         });
     };
-    attendance();
+    //attendance();
+
+    $(function () {
+        $('#selectDay').on('change', function () {
+            //alert($(this).val());
+            if( $(this).val()!= undefined){
+                var t = $(this).val().split(/[-]/);
+                var d = new Date(Date.UTC(t[0], t[1]-1, t[2]));
+                //console.log(getCurrentWeek())
+                attendance(d.getDay(),$(this).val());
+            }
+        });
+    });
+
 });
 
-/*
-<form method="POST" enctype="multipart/form-data" >
-    <input type="hidden" name="chk" value="update">
-    <table border="groove" cellpadding="15px">
-<tr>
-<td>s.no</td>
-<td>Reg. No</td>
-<td>name</td>
-<td>Present</td>
-</tr>
 
-<?php
-    include_once("yourconfig.php"); //add here your db config file
-extract($_POST);
-//After Click on Submit Call this
-if(isset($btnAbsent))
-{
-    foreach($attend as $atn_key=>$atn_value)
-    {
-        if($atn_value=="present")
-        {
-            $upd_qry="UPDATE attendance SET present=present+1 where s_no='".$atn_key."'";
-            mysql_query($upd_qry);
+function saveResults() {
+    console.log("ggggg")
+    //alert("работает");
+    var tab = document.getElementsByTagName("table")[0];
+    var cells = tab.getElementsByClassName("attend");
+    var checkboxes = tab.getElementsByClassName("check1");//
+    var day = document.getElementById("selectDay").value;
+    var res=[];
+    console.log(day);
+    for(var i = 0; i < cells.length; i++){
+        // Cell Object
+        var cell = cells[i];
+        var column = $(cell).index();
+        var idSubj = $('#subjects').find('td').eq(column).attr("id");
+        var idStud = $(cell).parent().attr("id");
+        var attend;
+        if ($(checkboxes[i]).prop('checked')) {
+            attend = 1;
         }
-        elseif($atn_value=="absent")
-        {
-            $upd_qry="UPDATE attendance SET absent=absent-1 where s_no='".$atn_key."'";
-            mysql_query($upd_qry);
-        }
+        else attend =0;
+        res.push({
+            "id_student" : idStud,
+            "id_subject"  : idSubj,
+            "date"       : day,
+            "attendance" : attend
+        });
     }
-}
-
-
-//Default call this
-$check_exist_qry="select * from attendance";
-$rs=mysql_query($check_exist_qry);
-$total_found=mysql_num_rows($rs);
-while ($row = mysql_fetch_assoc($rs))
-{
-    $id=  $row['s_no'];
-    $no[]=  $row['std_reg_no'];
-    echo "<tr><td>";
-    echo $row['s_no']."</td><td>";
-    echo $row['std_reg_no']."</td><td>";
-    echo $row['std_name']."</td>";
-    echo "<td> <input type='radio' name='attend[$id]' value='present' >Present &nbsp; <input type='radio' name='attend[$id]' value='absent'>absent</td></tr>";
-}
-
-echo "</table>";
-echo "<input type='submit' name='btnAbsent' value='submit'>";
-    ?>
-</form>*/
-
-
+    console.log(res);
+};
 
 
