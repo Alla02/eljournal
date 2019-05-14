@@ -64,6 +64,10 @@ block content
                     button.btn.btn-primary(type='submit' id="writeDown1")
                       | Зарегистрироваться
 
+                form(name='my-form2', action='/getSchedule', method='post')
+                  button.btn.btn-primary(type='submit')
+                    | Импортировать
+
                 #message
                 if message
                 h1.text-center.error-message #{message}

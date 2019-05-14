@@ -7,6 +7,12 @@ $(document).ready(function () {
             locale: {
                 format: 'YYYY-MM-DD'
             },
+            isInvalidDate: function(date) {
+                var day = (date._d).getDay();
+                if (day == 0) {
+                    return true;
+                }
+            }
         });
         $('#selectDay').val('');
         $('#selectDay').attr("placeholder","Выбрать день");
@@ -59,17 +65,18 @@ $(document).ready(function () {
                 for (var i in data) {
                 if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].subjectId+'"class="typePractice">'+data[i].subjectName+'</td>');
                 else $('#subjects').append('<td id="'+data[i].subjectId+'"class="typeLection">'+data[i].subjectName+'</td>');
-                $('.check').append('<td class="attend"><input type="checkbox" class="check1"</td>');
-                $('.check2').append('<td class="attend"><input type="checkbox" class="chkParent"></td>');
-
+                //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
+                //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
+                $('.check').append('<td class="attend" onclick="updateCell()"></td>');
                 }
+                /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
                 $('.chkParent').on("change", function() {
                     var $cb = $(this),
                         $th = $cb.closest("td"), // get parent th
                         col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
                     //alert(col);
                     $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
-                });
+                });*/
 
                 /*
                 $('#table1 input:checkbox').change(function(e) {
@@ -133,9 +140,19 @@ $(document).ready(function () {
         });
     });
 
+
 });
 
-
+function updateCell() {
+    $(".check .attend").click(function() {
+        $(this).html("x");
+    });
+    //$(this).html('Data to be shown inside td');
+    //$(".check .attend").on("click", function () {
+     //   $(this).attr('id')
+    //    console.log("clicked");
+    //});
+}
 function saveResults() {
     console.log("ggggg")
     //alert("работает");
@@ -157,13 +174,21 @@ function saveResults() {
         }
         else attend =0;
         res.push({
-            "id_student" : idStud,
-            "id_subject"  : idSubj,
+            "idStudent" : idStud,
+            "idSubject"  : idSubj,
             "date"       : day,
             "attendance" : attend
         });
     }
     console.log(res);
+    $.ajax({
+        type: "POST",
+        url: "/saveAttendance",
+        contentType: 'application/json',
+        data: JSON.stringify(res)
+        //dataType: "json"
+    }).done(function (data) {
+    });
 };
 
 
