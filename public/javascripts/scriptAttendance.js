@@ -36,14 +36,6 @@ $(document).ready(function () {
             for (var i in data) {
                 dayOfWeek.push(data[i].dayOfWeek);
                 subjectName.push(data[i].subjectName);
-                //подсчитываем количество предметов за один день для настройки объединения
-                /*
-                if (data[i].dayOfWeek==1) day1 = day1+1;
-                if (data[i].dayOfWeek==2) day2 = day2+1;
-                if (data[i].dayOfWeek==3) day3 = day3+1;
-                if (data[i].dayOfWeek==4) day4 = day4+1;
-                if (data[i].dayOfWeek==5) day5 = day5+1;
-                if (data[i].dayOfWeek==6) day6 = day6+1;*/
             }
             if (day===1) nameDay="Понедельник";
             if (day===2) nameDay="Вторник";
@@ -52,22 +44,16 @@ $(document).ready(function () {
             if (day===5) nameDay="Пятница";
             if (day===6) nameDay="Суббота";
             $('#weekd').attr('colspan',subjectName.length).text(nameDay);
-            $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend').remove().end();
+            $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend, .chkParent').remove().end();
             if (dayOfWeek.length){
-                /*$([Понедельник]).attr('colspan',day1);
-                $([Вторник]).attr('colspan',day2);
-                $([Среда]).attr('colspan',day3);
-                $([Четверг]).attr('colspan',day4);
-                $([Пятница]).attr('colspan',day5);
-                $([Суббота]).attr('colspan',day6);*/
-                //$('#subjects, .check, .check2').remove();
                 $('#subjects').append('<td class="typeLection"></td>');
                 for (var i in data) {
                 if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].subjectId+'"class="typePractice">'+data[i].subjectName+'</td>');
                 else $('#subjects').append('<td id="'+data[i].subjectId+'"class="typeLection">'+data[i].subjectName+'</td>');
                 //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
                 //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
-                $('.check').append('<td class="attend" onclick="updateCell()"></td>');
+                $('.check').append('<td class="attend present"></td>');
+                $('.check2').append('<td class="chkParent"></td>');
                 }
                 /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
                 $('.chkParent').on("change", function() {
@@ -126,7 +112,6 @@ $(document).ready(function () {
             }
         });
     };
-    //attendance();
 
     $(function () {
         $('#selectDay').on('change', function () {
@@ -140,25 +125,55 @@ $(document).ready(function () {
         });
     });
 
+    $(document).on("click", "td.attend" , function() {
+        if ($(this).hasClass("present")){
+            $(this).removeClass("present");
+            $(this).addClass("absent");
+        }
+        else{
+            if ($(this).hasClass("absent")){
+                $(this).removeClass("absent");
+                $(this).addClass("late");
+            }
+            else {
+                if ($(this).hasClass("late")){
+                    $(this).removeClass("late");
+                    $(this).addClass("present");
+                }
+            }
+        }
+    });
+
+    $(document).on("click", "td.chkParent" , function() {
+        var $cb = $(this),
+            $th = $cb.closest("td"), // get parent th
+            col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
+        //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
+        if ($("tbody td.attend:nth-child(" + col + ")").hasClass("present")){
+            $("tbody td.attend:nth-child(" + col + ")").removeClass("present");
+            $("tbody td.attend:nth-child(" + col + ")").addClass("absent");
+        }
+        else{
+            if ($("tbody td.attend:nth-child(" + col + ")").hasClass("absent")){
+                $("tbody td.attend:nth-child(" + col + ")").removeClass("absent");
+                $("tbody td.attend:nth-child(" + col + ")").addClass("late");
+            }
+            else {
+                if ($("tbody td.attend:nth-child(" + col + ")").hasClass("late")){
+                    $("tbody td.attend:nth-child(" + col + ")").removeClass("late");
+                    $("tbody td.attend:nth-child(" + col + ")").addClass("present");
+                }
+            }
+        }
+    });
 
 });
 
-function updateCell() {
-    $(".check .attend").click(function() {
-        $(this).html("x");
-    });
-    //$(this).html('Data to be shown inside td');
-    //$(".check .attend").on("click", function () {
-     //   $(this).attr('id')
-    //    console.log("clicked");
-    //});
-}
 function saveResults() {
-    console.log("ggggg")
-    //alert("работает");
+    console.log("ggggg");
     var tab = document.getElementsByTagName("table")[0];
     var cells = tab.getElementsByClassName("attend");
-    var checkboxes = tab.getElementsByClassName("check1");//
+    //var checkboxes = tab.getElementsByClassName("check1");//
     var day = document.getElementById("selectDay").value;
     var res=[];
     console.log(day);
@@ -169,10 +184,23 @@ function saveResults() {
         var idSubj = $('#subjects').find('td').eq(column).attr("id");
         var idStud = $(cell).parent().attr("id");
         var attend;
+        if ($(cell).hasClass("absent")){
+            attend = 0;
+        }
+        else {
+            if ($(cell).hasClass("present")){
+                attend = 1;
+            }
+            else
+            if ($(cell).hasClass("late")){
+                attend = 2;
+            }
+        }
+        /*
         if ($(checkboxes[i]).prop('checked')) {
             attend = 1;
         }
-        else attend =0;
+        else attend =0;*/
         res.push({
             "idStudent" : idStud,
             "idSubject"  : idSubj,
@@ -180,7 +208,8 @@ function saveResults() {
             "attendance" : attend
         });
     }
-    console.log(res);
+    //console.log(res);
+
     $.ajax({
         type: "POST",
         url: "/saveAttendance",

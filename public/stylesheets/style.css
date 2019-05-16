@@ -57,3 +57,20 @@ a {
 .div-none{
     display: none;
 }
+
+
+.present{
+    background-color: #B4F695;
+}
+
+.absent{
+    background-color: #F6C195;
+}
+
+.late{
+    background-color: #95EBF6;
+}
+
+.excused{
+    background-color: #9D95F6;
+}
