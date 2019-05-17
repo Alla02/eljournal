@@ -1,0 +1,17 @@
+extends layout
+
+block content
+	main.my-form
+		.cotainer
+			.row.justify-content-center
+				.col-md-8
+					.card
+						.card-header Импорт расписания
+						.card-body
+							form(name='formImport', action='/getSchedule', method='post')
+								button.btn.btn-primary(type='submit')
+									| Импортировать
+
+							div(id="message")
+							if message
+								div(class="text-center error-message") #{message}

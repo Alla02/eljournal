@@ -45,6 +45,7 @@ $(document).ready(function () {
             if (day===6) nameDay="Суббота";
             $('#weekd').attr('colspan',subjectName.length).text(nameDay);
             $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend, .chkParent').remove().end();
+            $('#selectPair').find('option').remove().end();
             if (dayOfWeek.length){
                 $('#subjects').append('<td class="typeLection"></td>');
                 for (var i in data) {
@@ -54,6 +55,7 @@ $(document).ready(function () {
                 //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
                 $('.check').append('<td class="attend present"></td>');
                 $('.check2').append('<td class="chkParent"></td>');
+                $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + '</option>');
                 }
                 /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
                 $('.chkParent').on("change", function() {
@@ -63,52 +65,6 @@ $(document).ready(function () {
                     //alert(col);
                     $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
                 });*/
-
-                /*
-                $('#table1 input:checkbox').change(function(e) {
-                    if(this.checked) {
-                        var value = parseInt($(this).closest('td').next('td').text(), 10);
-                        alert(value);
-                        // above will convert it from a string to an integer
-                    }
-                    else {
-                        // same as above? Seems redundant
-                    }
-                });*/
-                /*
-                var tab = document.getElementsByTagName("table")[0];
-                var cells = tab.getElementsByTagName("td"); //
-                var day = document.getElementsByName("selectDay");
-
-
-                for(var i = 1; i < cells.length; i++){
-                    // Cell Object
-                    var cell = cells[i];
-                    // Track with onclick
-                    cell.onclick = function(){
-                        //var cellIndex  = this.cellIndex + 1;
-                        //var rowIndex = this.parentNode.rowIndex + 1;
-                        var column = $(this).index();
-                        var idSubj = $('#subjects').find('td').eq(column).attr("id");
-                        var idStud = $(this).parent().attr("id")
-                        console.log(idSubj +" "+ idStud)
-                    }
-                }*/
-
-
-                //$("#table1 tr td:nth-child(1) input[type=checkbox]").prop("checked", true);
-                /*
-                $('table [type="checkbox"]').each(function(i, chk) {
-                    if (chk.checked) {
-                        console.log("Checked!", i, chk);
-                        var column = $(chk).index();
-                        console.log(column);
-                        var idSubj = $('#subjects').find('td').eq(column).attr("id");
-                        var idStud = $(this).parent().attr("id")
-                        console.log(idSubj +" "+ idStud)
-                    }
-                });*/
-
             }
         });
     };
@@ -170,13 +126,23 @@ $(document).ready(function () {
 });
 
 function saveResults() {
-    console.log("ggggg");
+    var idSubjTeacher = $("#selectPair option:selected").val();
+    var code = $("#code").val();
+    console.log(idSubjTeacher);
+    console.log(code);
+
+    $.ajax({
+        type: "POST",
+        url: "/validateCode",
+        data: jQuery.param({idSubjTeacher: idSubjTeacher, code: code }),
+    }).done(function (data) {
+        console.log("result from validat "+data.result);
+    });
     var tab = document.getElementsByTagName("table")[0];
     var cells = tab.getElementsByClassName("attend");
     //var checkboxes = tab.getElementsByClassName("check1");//
     var day = document.getElementById("selectDay").value;
     var res=[];
-    console.log(day);
     for(var i = 0; i < cells.length; i++){
         // Cell Object
         var cell = cells[i];
@@ -209,7 +175,7 @@ function saveResults() {
         });
     }
     //console.log(res);
-
+    /*
     $.ajax({
         type: "POST",
         url: "/saveAttendance",
@@ -217,7 +183,7 @@ function saveResults() {
         data: JSON.stringify(res)
         //dataType: "json"
     }).done(function (data) {
-    });
+    });*/
 };
 
 

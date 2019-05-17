@@ -31,6 +31,11 @@ block content
                             //form(name='my-form', action='/saveAttendance', method='post')
                             //form
                             .col-md-6.offset-md-4
+                                label.col-md-4.col-form-label.text-md-right Выбрать занятие
+                                select(id='selectPair' class='form-control')
+                                label.col-md-4.col-form-label.text-md-right Проверочный код
+                                input(type='text' id='code' class='form-control required', placeholder='Код')
+                            .col-md-6.offset-md-4
                                 button.btn.btn-primary(type='submit' onclick='saveResults()')
                                     | Сохранить
                             #message

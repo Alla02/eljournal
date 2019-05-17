@@ -25,7 +25,7 @@
                     var user = {};
                     user.id = row[0].id;
                     user.login = row[0].login;
-                    user.typeUser = row[0].user_type;
+                    user.user_type = row[0].typeUser;
                     user.email = row[0].email;
                     var sql2 = "select * from persons where id_user='" + row[0].id + "'";
                     db.query(sql2, function (err, row) {
@@ -78,17 +78,16 @@
 
                                             user.password = hash;
                                             user.login = req.body.login;
-                                            user.typeUser = req.body.user_type;
+                                            user.user_type = req.body.user_type;
                                             user.first_name = req.body.first_name;
                                             user.second_name = req.body.second_name;
                                             user.last_name = req.body.last_name;
-                                            user.user_type = req.body.user_type;
                                             user.birthyear = req.body.birthyear;
                                             //user.studyGroup = req.body.studyGroup;
                                             console.log(user.birthyear);
                                             console.log("st " +stgroup);
 
-                                            db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[user.login,user.password,user.typeUser,req.body.email], function (err) {
+                                            db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[user.login,user.password,user.user_type,req.body.email], function (err) {
                                                 if (err) {
                                                     console.log(err);
                                                 }
@@ -377,7 +376,7 @@
                         }
                         var user = {};
                         user.login = row[0].login;
-                        user.typeUser = row[0].user_type;
+                        user.user_type = row[0].typeUser;
                         user.email = row[0].email;
                         var sql2 = "select * from persons where id_user='" + row[0].id + "'";
                         db.query(sql2, function (err, row) {
@@ -388,7 +387,6 @@
                         bcrypt.compare(password, row[0].password, function (err, res) {
                             console.log(row[0].password);
                             console.log(password);
-                            console.log(res);
                             if (res) {
                                 console.log("res");
                                 return done(null, user);
