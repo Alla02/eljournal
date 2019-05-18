@@ -1127,7 +1127,7 @@ router.post("/fillSchedule", function(req, res, next) {
 router.post("/fillAttendance", function(req, res, next) {
     //req.body.group  - AJAX data from /table
     var result = [];
-    let str = `SELECT * from studentattendance WHERE date_attendance=? and id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? and id_semester=? ORDER BY dayOfWeek, numPair)`;
+    let str = `SELECT * from studentattendance WHERE date_attendance=? and id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? and id_semester=?)`;
     //console.log(getCurrentWeek()); and dayofweek=? and typeweek=?
     pool.getConnection(function(err, db) {
         if (err) return next(err);
@@ -1138,7 +1138,7 @@ router.post("/fillAttendance", function(req, res, next) {
             }
             else {
                 var idSemester = rows[0].id;
-                db.query(str, [req.body.day,req.body.id_group, idSemester], (err, rows) => {
+                db.query(str, [req.body.selecteddate,req.body.id_group, idSemester], (err, rows) => {
                     if (err) {
                         return next(err);
                     } else {
@@ -1147,11 +1147,12 @@ router.post("/fillAttendance", function(req, res, next) {
                                 id: row.id,
                                 idStudent: row.id_student,
                                 attendance: row.attendance,
-                                idSubjTeacher: row.idSubjTeacher
+                                idSubjTeacher: row.id_subjteacher
                             });
                         });
+                        console.log(result);
+                        res.send(JSON.stringify(result));
                     }
-                    res.send(JSON.stringify(result));
                     db.release();
                     if (err) return next(err);
                     // Don't use the db here, it has been returned to the pool.
@@ -1173,11 +1174,7 @@ router.post("/validateCode", function(req, res, next) {
             console.log(rows[0].approval_code);
             if (rows[0].approval_code === code) result = 1;
             else result = 0;
-                db.query("SELECT id_subject FROM subjteacher WHERE id=?;", [idSubjTeacher], (err, rows) => {
-                    if (err) return next(err);
-                    idSubject=rows[0].id_subject;
-                    res.send({result: result, idSubject: idSubject});
-                });
+            res.send({result: result});
         });
         db.release();
         if (err) return next(err);

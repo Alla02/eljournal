@@ -66,16 +66,30 @@ $(document).ready(function () {
                     //alert(col);
                     $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
                 });*/
-                /*
+
                 $.ajax({
                     type: "POST",
                     url: "/fillAttendance",
-                    contentType: 'application/json',
-                    data: JSON.stringify(res)
-                    //dataType: "json"
-                }).done(function (data) {
-                    $("h2").text("Посещаемость сохранена");
-                });*/
+                    data: jQuery.param({id_group: groupId_,selecteddate: seldate, day:day}),
+                    dataType: "json"
+                }).done(function (data2) {
+                    console.log("data2 "+data2);
+                    for (var i in data2) {
+                        console.log("d "+data2[i].idSubjTeacher +" " +data2[i].idStudent);
+                        var column = $("#" + data2[i].idSubjTeacher).index();
+                        console.log(column);
+                       // var column = $(cell).index();
+                        //var idSubj = $('#subjects').find('td').eq(column).attr("id");
+                        //var idStud = $(cell).parent().attr("id");
+                        //$("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
+                        console.log("att "+data2[i].attendance);
+                        if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent").addClass("checked");
+                        else {
+                            if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present").addClass("checked");
+                            else if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late").addClass("checked");
+                        }
+                    }
+                });
             }
         });
     };
@@ -93,19 +107,20 @@ $(document).ready(function () {
     });
 
     $(document).on("click", "td.attend" , function() {
-        if ($(this).hasClass("present")){
-            $(this).removeClass("present").addClass("absent");
-        }
-        else{
-            if ($(this).hasClass("absent")){
-                $(this).removeClass("absent").addClass("late");
-            }
-            else {
-                if ($(this).hasClass("late")){
-                    $(this).removeClass("late").addClass("present");
+        //if (!$(this).hasClass("checked")) {
+            //$(this).addClass("present");
+            if ($(this).hasClass("present")) {
+                $(this).removeClass("present").addClass("absent");
+            } else {
+                if ($(this).hasClass("absent")) {
+                    $(this).removeClass("absent").addClass("late");
+                } else {
+                    if ($(this).hasClass("late")) {
+                        $(this).removeClass("late").addClass("present");
+                    }
                 }
             }
-        }
+        //}
     });
 
     $(document).on("click", "td.chkParent" , function() {
@@ -129,9 +144,9 @@ $(document).ready(function () {
     });
 
     $("#selectPair").on("change", function() {
-        $("tbody td.attend").removeClass("present");
-        $("tbody td.attend").removeClass("absent");
-        $("tbody td.attend").removeClass("late");
+        //if (!$("td").hasClass("checked")) $("td.attend").removeClass("present").removeClass("absent").removeClass("late");
+        //$("tbody td.attend").removeClass("absent");
+        //$("tbody td.attend").removeClass("late");
         var idSubjTeacher = $("#selectPair option:selected").val();
         var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
         console.log(col);
@@ -152,7 +167,6 @@ function saveResults() {
     }).done(function (data) {
         console.log("result from validat "+data.result);
         if (!data.result) { //УБРАТЬ !
-            var idSelectedSubject = data.idSubject;
             var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
            // console.log(col);
             var tab = document.getElementsByTagName("table")[0];
@@ -167,6 +181,7 @@ function saveResults() {
                 var column = $(cell).index();
                 var idSubj = $('#subjects').find('td').eq(column).attr("id");
                 var idStud = $(cell).parent().attr("id");
+                idStud = idStud.substring(idStud.indexOf("t") + 1);
                 var attend;
                 if ($(cell).hasClass("absent")){
                     attend = 0;
@@ -194,7 +209,7 @@ function saveResults() {
                 });
             }
             console.log(res);
-
+            /*
             $.ajax({
                 type: "POST",
                 url: "/saveAttendance",
@@ -203,7 +218,7 @@ function saveResults() {
                 //dataType: "json"
             }).done(function (data) {
                 $("h2").text("Посещаемость сохранена");
-            });
+            });*/
         }
         else {
             $("h2").text("Код не совпадает");
