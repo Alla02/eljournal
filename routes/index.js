@@ -1084,6 +1084,7 @@ router.post("/validateCode", function(req, res, next) {
     var result;
     var idSubjTeacher = req.body.idSubjTeacher;
     var code = req.body.code;
+    var idSubject;
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         db.query("SELECT approval_code FROM teachers WHERE id=(SELECT id_teacher FROM subjteacher WHERE id=?);", [idSubjTeacher], (err, rows) => {
@@ -1091,7 +1092,11 @@ router.post("/validateCode", function(req, res, next) {
             console.log(rows[0].approval_code);
             if (rows[0].approval_code === code) result = 1;
             else result = 0;
-            res.send(result);
+                db.query("SELECT id_subject FROM subjteacher WHERE id=?;", [idSubjTeacher], (err, rows) => {
+                    if (err) return next(err);
+                    idSubject=rows[0].id_subject;
+                    res.send({result: result, idSubject: idSubject});
+                });
         });
         db.release();
         if (err) return next(err);
@@ -1105,7 +1110,7 @@ router.post("/saveAttendance", function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         for (var i = 0; i< result.length; i++) {
-            db.query("INSERT INTO studentattendance(id_student, id_subject, date_attendance, attendance) VALUES (?,?,?,?);", [result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance], (err, rows) => {
+            db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance) VALUES (?,?,?,?);", [result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance], (err, rows) => {
                 if (err) return next(err);
             });
         }

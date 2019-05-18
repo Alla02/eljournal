@@ -46,14 +46,15 @@ $(document).ready(function () {
             $('#weekd').attr('colspan',subjectName.length).text(nameDay);
             $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend, .chkParent').remove().end();
             $('#selectPair').find('option').remove().end();
+            $("h2").text("")
             if (dayOfWeek.length){
                 $('#subjects').append('<td class="typeLection"></td>');
                 for (var i in data) {
-                if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].subjectId+'"class="typePractice">'+data[i].subjectName+'</td>');
-                else $('#subjects').append('<td id="'+data[i].subjectId+'"class="typeLection">'+data[i].subjectName+'</td>');
+                if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice">'+data[i].subjectName+'</td>');
+                else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection">'+data[i].subjectName+'</td>');
                 //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
                 //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
-                $('.check').append('<td class="attend present"></td>');
+                $('.check').append('<td class="attend"></td>');
                 $('.check2').append('<td class="chkParent"></td>');
                 $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + '</option>');
                 }
@@ -83,18 +84,15 @@ $(document).ready(function () {
 
     $(document).on("click", "td.attend" , function() {
         if ($(this).hasClass("present")){
-            $(this).removeClass("present");
-            $(this).addClass("absent");
+            $(this).removeClass("present").addClass("absent");
         }
         else{
             if ($(this).hasClass("absent")){
-                $(this).removeClass("absent");
-                $(this).addClass("late");
+                $(this).removeClass("absent").addClass("late");
             }
             else {
                 if ($(this).hasClass("late")){
-                    $(this).removeClass("late");
-                    $(this).addClass("present");
+                    $(this).removeClass("late").addClass("present");
                 }
             }
         }
@@ -106,23 +104,29 @@ $(document).ready(function () {
             col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
         //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
         if ($("tbody td.attend:nth-child(" + col + ")").hasClass("present")){
-            $("tbody td.attend:nth-child(" + col + ")").removeClass("present");
-            $("tbody td.attend:nth-child(" + col + ")").addClass("absent");
+            $("tbody td.attend:nth-child(" + col + ")").removeClass("present").addClass("absent");
         }
         else{
             if ($("tbody td.attend:nth-child(" + col + ")").hasClass("absent")){
-                $("tbody td.attend:nth-child(" + col + ")").removeClass("absent");
-                $("tbody td.attend:nth-child(" + col + ")").addClass("late");
+                $("tbody td.attend:nth-child(" + col + ")").removeClass("absent").addClass("late");
             }
             else {
                 if ($("tbody td.attend:nth-child(" + col + ")").hasClass("late")){
-                    $("tbody td.attend:nth-child(" + col + ")").removeClass("late");
-                    $("tbody td.attend:nth-child(" + col + ")").addClass("present");
+                    $("tbody td.attend:nth-child(" + col + ")").removeClass("late").addClass("present");
                 }
             }
         }
     });
 
+    $("#selectPair").on("change", function() {
+        $("tbody td.attend").removeClass("present");
+        $("tbody td.attend").removeClass("absent");
+        $("tbody td.attend").removeClass("late");
+        var idSubjTeacher = $("#selectPair option:selected").val();
+        var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
+        console.log(col);
+        $("tbody td.attend:nth-child(" + col + ")").addClass("present");
+    });
 });
 
 function saveResults() {
@@ -137,53 +141,64 @@ function saveResults() {
         data: jQuery.param({idSubjTeacher: idSubjTeacher, code: code }),
     }).done(function (data) {
         console.log("result from validat "+data.result);
-    });
-    var tab = document.getElementsByTagName("table")[0];
-    var cells = tab.getElementsByClassName("attend");
-    //var checkboxes = tab.getElementsByClassName("check1");//
-    var day = document.getElementById("selectDay").value;
-    var res=[];
-    for(var i = 0; i < cells.length; i++){
-        // Cell Object
-        var cell = cells[i];
-        var column = $(cell).index();
-        var idSubj = $('#subjects').find('td').eq(column).attr("id");
-        var idStud = $(cell).parent().attr("id");
-        var attend;
-        if ($(cell).hasClass("absent")){
-            attend = 0;
+        if (!data.result) { //УБРАТЬ !
+            var idSelectedSubject = data.idSubject;
+            var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
+           // console.log(col);
+            var tab = document.getElementsByTagName("table")[0];
+            //var cells = tab.getElementsByClassName("attend");
+            var cells = $("tbody td.attend:nth-child(" + col + ")");
+            //var checkboxes = tab.getElementsByClassName("check1");//
+            var day = document.getElementById("selectDay").value;
+            var res=[];
+            for(var i = 0; i < cells.length; i++){
+                // Cell Object
+                var cell = cells[i];
+                var column = $(cell).index();
+                var idSubj = $('#subjects').find('td').eq(column).attr("id");
+                var idStud = $(cell).parent().attr("id");
+                var attend;
+                if ($(cell).hasClass("absent")){
+                    attend = 0;
+                }
+                else {
+                    if ($(cell).hasClass("present")){
+                        attend = 1;
+                    }
+                    else
+                    if ($(cell).hasClass("late")){
+                        attend = 2;
+                    }
+                }
+                /*
+                if ($(checkboxes[i]).prop('checked')) {
+                    attend = 1;
+                }
+                else attend =0;*/
+
+                res.push({
+                    "idStudent" : idStud,
+                    "idSubject"  : idSubj,
+                    "date"       : day,
+                    "attendance" : attend
+                });
+            }
+            console.log(res);
+
+            $.ajax({
+                type: "POST",
+                url: "/saveAttendance",
+                contentType: 'application/json',
+                data: JSON.stringify(res)
+                //dataType: "json"
+            }).done(function (data) {
+                $("h2").text("Посещаемость сохранена");
+            });
         }
         else {
-            if ($(cell).hasClass("present")){
-                attend = 1;
-            }
-            else
-            if ($(cell).hasClass("late")){
-                attend = 2;
-            }
+            $("h2").text("Код не совпадает");
         }
-        /*
-        if ($(checkboxes[i]).prop('checked')) {
-            attend = 1;
-        }
-        else attend =0;*/
-        res.push({
-            "idStudent" : idStud,
-            "idSubject"  : idSubj,
-            "date"       : day,
-            "attendance" : attend
-        });
-    }
-    //console.log(res);
-    /*
-    $.ajax({
-        type: "POST",
-        url: "/saveAttendance",
-        contentType: 'application/json',
-        data: JSON.stringify(res)
-        //dataType: "json"
-    }).done(function (data) {
-    });*/
-};
+    });
+}
 
 
