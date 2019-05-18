@@ -74,3 +74,9 @@ a {
 .excused{
     background-color: #9D95F6;
 }
+
+.stickyLeft {
+    position: sticky;
+    left: -2px;
+    background: #FFFFFF;
+}

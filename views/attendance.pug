@@ -24,12 +24,9 @@ block content
                                         tbody
                                             each val in listStudents
                                                 tr(id=val.studentId class="check")
-                                                    td(class="student") #{val.lastname} #{val.firstname} #{val.secondname}
+                                                    td(class="student stickyLeft") #{val.lastname} #{val.firstname} #{val.secondname}
                                         tr(class="check2")
                                             td Выбрать всех
-
-                            //form(name='my-form', action='/saveAttendance', method='post')
-                            //form
                             .col-md-6.offset-md-4
                                 label.col-md-4.col-form-label.text-md-right Выбрать занятие
                                 select(id='selectPair' class='form-control')

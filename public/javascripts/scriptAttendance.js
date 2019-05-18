@@ -24,7 +24,7 @@ $(document).ready(function () {
         var groupId_ = url.substring(url.lastIndexOf('/') + 1);
         $.ajax({
             type: "POST",
-            url: "/fillAttendance",
+            url: "/fillSchedule",
             data: jQuery.param({id_group: groupId_,selecteddate: seldate, day:day}),
             dataType: "json"
         }).done(function (data) {
@@ -45,10 +45,10 @@ $(document).ready(function () {
             if (day===6) nameDay="Суббота";
             $('#weekd').attr('colspan',subjectName.length).text(nameDay);
             $('#subjects, .check, .check2').find('.typeLection,.typePractice, .attend, .chkParent').remove().end();
-            $('#selectPair').find('option').remove().end();
+            $('#selectPair').find('option').remove().end().append('<option></option>');
             $("h2").text("")
             if (dayOfWeek.length){
-                $('#subjects').append('<td class="typeLection"></td>');
+                $('#subjects').append('<td class="typeLection stickyLeft"></td>');
                 for (var i in data) {
                 if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice">'+data[i].subjectName+'</td>');
                 else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection">'+data[i].subjectName+'</td>');
@@ -65,6 +65,16 @@ $(document).ready(function () {
                         col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
                     //alert(col);
                     $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
+                });*/
+                /*
+                $.ajax({
+                    type: "POST",
+                    url: "/fillAttendance",
+                    contentType: 'application/json',
+                    data: JSON.stringify(res)
+                    //dataType: "json"
+                }).done(function (data) {
+                    $("h2").text("Посещаемость сохранена");
                 });*/
             }
         });

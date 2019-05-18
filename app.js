@@ -84,10 +84,11 @@ global.updateWeek = function() {
             });
           });
 
-          app.locals.dateMob = getDate(result[0].begin_date, result[0].week,)[0];
-          app.locals.date = getDate(result[0].begin_date, result[0].week,)[0];
-          app.locals.curweek = getDate(result[0].begin_date, result[0].week,)[1];
+          app.locals.dateMob = getDate(result[0].begin_date, result[0].week)[0];
+          app.locals.date = getDate(result[0].begin_date, result[0].week)[0];
+          app.locals.curweek = getDate(result[0].begin_date, result[0].week)[1];
           //app.locals.dateBeginSemester = result[0].begin_date;
+          //app.locals.dateBeginWeek = result[0].week;
           //app.locals.dateEndSemester = result[0].end_date;
           currentWeek = app.locals.curweek;
           //dateBeginSemester = app.locals.dateBeginSemester;

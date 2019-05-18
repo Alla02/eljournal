@@ -1021,7 +1021,49 @@ router.get('/attendance/:id', function(req, res, next) {
     });
 });
 
-router.post("/fillAttendance", function(req, res, next) {
+function getWeek(begin_date,week,selectedDate) {
+    var day = ("Воскресенье", "Понедельник", "Вторник",
+        "Среда", "Четверг", "Пятница", "Суббота");
+    var d = new Date();
+    var month = ["января", "февраля", "марта", "апреля", "мая", "июня",
+        "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+    var TODAY = day[d.getDay()] + " " + d.getDate() + " " + month[d.getMonth()]
+        + " " + d.getFullYear() + " г.";
+
+    var info,curweek;
+
+    var startWeek = week;
+
+    var dateCurrent = new Date(selectedDate);
+
+    var dateBegin  = new Date(begin_date);
+    var timeBegin = dateBegin.getTime();
+    var dayBegin = dateBegin.getDay();
+    var differenceDay = Math.floor ((dateCurrent - timeBegin) / 8.64e7) + (dayBegin ? dayBegin - 1 : 6);
+
+    var currentOfWeek =  (Math.floor(differenceDay / 7) % 2);
+    if (currentOfWeek ===0){
+        if(startWeek ==="Верхняя"){
+            curweek = "Верхняя"
+        }
+        else{
+            curweek = "Нижняя"
+        }
+    }
+    else {
+        if(startWeek ==="Верхняя"){
+            curweek = "Нижняя"
+        }
+        else{
+            curweek = "Верхняя"
+        }
+    }
+
+    return curweek;
+}
+
+router.post("/fillSchedule", function(req, res, next) {
     //req.body.group  - AJAX data from /table
     var result = [];
     let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
@@ -1033,18 +1075,20 @@ router.post("/fillAttendance", function(req, res, next) {
     INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
     INNER JOIN persons ON persons.id=teachers.id_person
     INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
-    WHERE id_group=? and id_semester=? and dayOfWeek=? ORDER BY dayOfWeek, numPair`;
+    WHERE id_group=? and id_semester=? and dayOfWeek=? and typeWeek in (?) ORDER BY dayOfWeek, numPair`;
     //console.log(getCurrentWeek()); and dayofweek=? and typeweek=?
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        //var typeweek = getCurrentWeek();
-        db.query("SELECT id FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
+        db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
             if (err) {
                 return next(err);
             }
             else {
+                var arr = ['Обе'];
+                var week = getWeek(rows[0].start, rows[0].week,req.body.selecteddate);
+                arr.push(week);
                 var idSemester = rows[0].id;
-                db.query(str, [req.body.id_group, idSemester, req.body.day], (err, rows) => {
+                db.query(str, [req.body.id_group, idSemester, req.body.day,arr], (err, rows) => {
                     if (err) {
                         return next(err);
                     } else {
@@ -1066,6 +1110,43 @@ router.post("/fillAttendance", function(req, res, next) {
                                 subjectName: row.subjectName,
                                 week: row.typeWeek,
                                 typeSubject: row.typeSubject,
+                                idSubjTeacher: row.idSubjTeacher
+                            });
+                        });
+                    }
+                    res.send(JSON.stringify(result));
+                    db.release();
+                    if (err) return next(err);
+                    // Don't use the db here, it has been returned to the pool.
+                });
+            }
+        });
+    });
+});
+
+router.post("/fillAttendance", function(req, res, next) {
+    //req.body.group  - AJAX data from /table
+    var result = [];
+    let str = `SELECT * from studentattendance WHERE date_attendance=? and id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? and id_semester=? ORDER BY dayOfWeek, numPair)`;
+    //console.log(getCurrentWeek()); and dayofweek=? and typeweek=?
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        //var typeweek = getCurrentWeek();
+        db.query("SELECT id FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
+            if (err) {
+                return next(err);
+            }
+            else {
+                var idSemester = rows[0].id;
+                db.query(str, [req.body.day,req.body.id_group, idSemester], (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        rows.forEach(row => {
+                            result.push({
+                                id: row.id,
+                                idStudent: row.id_student,
+                                attendance: row.attendance,
                                 idSubjTeacher: row.idSubjTeacher
                             });
                         });
@@ -1119,6 +1200,8 @@ router.post("/saveAttendance", function(req, res, next) {
         if (err) return next(err);
     });
 });
+
+
 
 
 module.exports = router;
