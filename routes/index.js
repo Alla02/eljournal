@@ -705,7 +705,7 @@ router.post("/delStudent/:id", isLoggedIn, function(req, res, next) {
 });
 
 router.post("/regStudents", function(req, res, next) {//для регистрации
-    console.log(req.body.studyGroup)
+    console.log(req.body.studyGroup);
     var result = [];
     var result2 = [];
     pool.getConnection(function(err, db) {
@@ -1187,17 +1187,63 @@ router.post("/saveAttendance", function(req, res, next) {
     console.log(result);
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
+        /*
         for (var i = 0; i< result.length; i++) {
             db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance) VALUES (?,?,?,?);", [result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance], (err, rows) => {
                 if (err) return next(err);
+
+            db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance) VALUES (?,?,?,?);", [result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance], (err, rows) => {
+                if (err) return next(err);
             });
+            });
+        }*/
+
+        async function checkIfExist(idStudent, idSubject, date) {
+            return new Promise(function(res) {
+                db.query("SELECT id FROM studentattendance where id_student=? AND id_subjteacher=? AND date_attendance=?;", [idStudent, idSubject, date], function (err, rows) {
+                    console.log("1 " + idStudent, idSubject, date);
+                    if (err) return next(err);
+                    if (rows.length === 0) res(0);
+                    else res(rows[0].id);
+                });
+            })
         }
+
+        async function updateAttendance(attendance,id) {
+            return new Promise(function(res) {
+                db.query("UPDATE studentattendance SET attendance=? WHERE id=?;", [attendance,id], (err) => {
+                    console.log("studentattendance updated");
+                    if (err) console.log(err);
+                    res();
+                })
+            })
+        }
+
+        async function insertIntoAttendance(idStudent, idSubject, date, attendance) {
+            return new Promise(function(res) {
+                db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance) VALUES (?,?,?,?);", [idStudent, idSubject, date, attendance], (err) => {
+                    console.log("inserted into studentattendance")
+                    if (err) console.log(err);
+                    res();
+                })
+            })
+        }
+
+        async function save() {
+            for (var i = 0; i< result.length; i++){
+                var res;
+                res = await checkIfExist(result[i].idStudent, result[i].idSubject, result[i].date);
+                console.log("res "+res);
+                if (res === 0) insertIntoAttendance(result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance);
+                else updateAttendance(result[i].attendance, res);
+            }
+        }
+        save();
         res.sendStatus(200);
         db.release();
         if (err) return next(err);
     });
 });
-
 
 
 

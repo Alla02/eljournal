@@ -59,22 +59,28 @@ a {
 }
 
 
-.present{
+.present {
     background-color: #B4F695;
 }
 
-.absent{
+.absent {
     background-color: #F6C195;
 }
 
-.late{
+.late {
     background-color: #95EBF6;
 }
 
-.excused{
+.excused {
     background-color: #9D95F6;
 }
 
+.selected {
+    border: 20px solid red; /*НАСТРОИТЬ*/
+    border-radius: 20px;
+}
+
+/*для списка студентов, прикрепляется влево*/
 .stickyLeft {
     position: sticky;
     left: -2px;

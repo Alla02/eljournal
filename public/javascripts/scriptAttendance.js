@@ -83,10 +83,10 @@ $(document).ready(function () {
                         //var idStud = $(cell).parent().attr("id");
                         //$("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         console.log("att "+data2[i].attendance);
-                        if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent").addClass("checked");
+                        if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
-                            if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present").addClass("checked");
-                            else if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late").addClass("checked");
+                            if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");
+                            else if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late");
                         }
                     }
                 });
@@ -107,37 +107,45 @@ $(document).ready(function () {
     });
 
     $(document).on("click", "td.attend" , function() {
-        //if (!$(this).hasClass("checked")) {
-            //$(this).addClass("present");
-            if ($(this).hasClass("present")) {
-                $(this).removeClass("present").addClass("absent");
-            } else {
-                if ($(this).hasClass("absent")) {
-                    $(this).removeClass("absent").addClass("late");
+        var $cell = $(this);
+        if ($cell.hasClass("selected")) {
+            if (!$cell.hasClass("present") && !$cell.hasClass("absent") && !$cell.hasClass("late")) $cell.addClass("present");
+            else {
+                if ($cell.hasClass("present")) {
+                    $cell.removeClass("present").addClass("absent");
                 } else {
-                    if ($(this).hasClass("late")) {
-                        $(this).removeClass("late").addClass("present");
+                    if ($cell.hasClass("absent")) {
+                        $cell.removeClass("absent").addClass("late");
+                    } else {
+                        if ($cell.hasClass("late")) {
+                            $cell.removeClass("late").addClass("present");
+                        }
                     }
                 }
             }
-        //}
+        }
     });
 
     $(document).on("click", "td.chkParent" , function() {
         var $cb = $(this),
             $th = $cb.closest("td"), // get parent th
             col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
+        var $cells = $("tbody td.attend:nth-child(" + col + ")");
         //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
-        if ($("tbody td.attend:nth-child(" + col + ")").hasClass("present")){
-            $("tbody td.attend:nth-child(" + col + ")").removeClass("present").addClass("absent");
-        }
-        else{
-            if ($("tbody td.attend:nth-child(" + col + ")").hasClass("absent")){
-                $("tbody td.attend:nth-child(" + col + ")").removeClass("absent").addClass("late");
-            }
+        if ($cells.hasClass("selected")) {
+            if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late"))
+                $cells.addClass("present");
             else {
-                if ($("tbody td.attend:nth-child(" + col + ")").hasClass("late")){
-                    $("tbody td.attend:nth-child(" + col + ")").removeClass("late").addClass("present");
+                if ($cells.hasClass("present")) {
+                    $cells.removeClass("present").addClass("absent");
+                } else {
+                    if ($cells.hasClass("absent")) {
+                        $cells.removeClass("absent").addClass("late");
+                    } else {
+                        if ($cells.hasClass("late")) {
+                            $cells.removeClass("late").addClass("present");
+                        }
+                    }
                 }
             }
         }
@@ -147,10 +155,12 @@ $(document).ready(function () {
         //if (!$("td").hasClass("checked")) $("td.attend").removeClass("present").removeClass("absent").removeClass("late");
         //$("tbody td.attend").removeClass("absent");
         //$("tbody td.attend").removeClass("late");
+        $("tbody td.attend").removeClass("selected");
         var idSubjTeacher = $("#selectPair option:selected").val();
         var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
         console.log(col);
-        $("tbody td.attend:nth-child(" + col + ")").addClass("present");
+        $("tbody td.attend:nth-child(" + col + ")").addClass("selected");
+        $("h2").text("");
     });
 });
 
@@ -209,7 +219,7 @@ function saveResults() {
                 });
             }
             console.log(res);
-            /*
+
             $.ajax({
                 type: "POST",
                 url: "/saveAttendance",
@@ -218,7 +228,7 @@ function saveResults() {
                 //dataType: "json"
             }).done(function (data) {
                 $("h2").text("Посещаемость сохранена");
-            });*/
+            });
         }
         else {
             $("h2").text("Код не совпадает");
