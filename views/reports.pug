@@ -1,0 +1,44 @@
+extends layout
+block variables
+    include variables
+block append scripts
+    script(src="/javascripts/scriptReports.js")
+block content
+    main.my-form
+        input#idTeacher(type='hidden' value=idTeacher)
+        .cotainer
+            .row.justify-content-center
+                .col-md-10
+                    .card
+                        .card-header Отчеты
+                        .card-body
+                            .row
+                                .col-2
+                                    input(type='text' name='selectDayBegin' class='form-control' id="selectDayBegin")
+                                .col-2
+                                    input(type='text' name='selectDayEnd' class='form-control' id="selectDayEnd")
+                            .row
+                                .col-2
+                                    label.col-form-label Выбрать группу
+                                    select(id='selectGroupReports' class='form-control')
+                                        option(value=0)
+                                        each val in studyGroups
+                                            option(value=val.id) #{val.name}
+                                .col-3
+                                    label.col-form-label Выбрать предмет
+                                    select(id='selectSubjectReports' class='form-control')
+                                        option(value=0)
+                                .col-3
+                                    label.col-form-label Выбрать студента
+                                    select(id='selectStudentReports' class='form-control')
+                                        option(value=0)
+                                .col
+                                    button.btn.btn-primary(type='submit' onclick='saveResults()')
+                                        | Получить
+                                    #message
+                                    if message
+                                    h2.text-center.error-message #{message}
+                            .chart-container(style='position: relative; width:40%')
+                                canvas#myChart(width='200', height='200')
+
+

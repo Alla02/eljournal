@@ -63,14 +63,6 @@ router.get('/register', function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
       if (err) return next(err); // not connected!
-      //db.query("SELECT column_type FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'typeUser';", (err, rows) => {
-      db.query("SELECT * FROM type_user", (err, rows) => {
-        if (err) {
-          return next(err);
-        }
-        rows.forEach(row => {
-          result.push({ id: row.id, name: row.name });
-        });
         var studyGroups = [];
         db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
           if (err) {
@@ -88,7 +80,7 @@ router.get('/register', function(req, res, next) {
 			email = req.user.email;
 			secondname = req.user.second_name;
 		  }
-		  res.render("register", {title: "Регистрация",list: result,login: login,
+		  res.render("register", {title: "Регистрация", login: login,
 		    lastname: lastname,
 		    firstname: firstname,
 		    secondname: secondname,
@@ -97,7 +89,6 @@ router.get('/register', function(req, res, next) {
         });
         db.release();
         if (err) return next(err);
-      });
     });
 });
 
@@ -897,6 +888,95 @@ router.post("/table", function(req, res, next) {
                     res.redirect("/table");
                 });
             }
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/reports", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var login,lastname,firstname,secondname,type_user,email = "";
+        var studyGroups = []; var sqlgroups; var idTeacher;
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        if (type_user==="Преподаватель") {
+            sqlgroups ="SELECT id,name FROM studyGroups WHERE id IN (SELECT id_group FROM subjteacher WHERE id_teacher=(SELECT id FROM teachers WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))))";
+            db.query("SELECT id FROM teachers WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+                if (err) return next(err);
+                idTeacher = rows[0].id;
+            });
+        }
+        if (type_user==="Куратор") {
+            idTeacher = 0;
+            sqlgroups = "SELECT id,name FROM studygroups WHERE id IN (SELECT id_group FROM groupcurator WHERE id_curator=(SELECT id FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))))";
+        }
+        if (type_user==="Студент") {
+            idTeacher = 0;
+            sqlgroups = "SELECT id,name FROM studygroups WHERE id=(SELECT id_group FROM students WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?)))";
+        }
+        db.query(sqlgroups,[login], (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                studyGroups.push({ id: row.id, name: row.name });
+            });
+            res.render("reports", {
+                title: "Отчеты",
+                login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email,
+                studyGroups: studyGroups,
+                idTeacher: idTeacher
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/reportsLists", function(req, res, next) {
+    var subjectsList = [];
+    var studentsList = [];
+    var idSubjTeacher = req.body.idSubjTeacher;
+    var code = req.body.code;
+    var idSubject;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        db.query("SELECT attendance FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=1 AND id_student=1) AND date_attendance BETWEEN '2019-05-13' AND '2019-05-18';", (err, rows) => {
+            if (err) return next(err);
+            console.log(rows[0].approval_code);
+            if (rows[0].approval_code === code) result = 1;
+            else result = 0;
+            res.send({result: result});
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/getReport", function(req, res, next) {
+    var result;
+    var idSubjTeacher = req.body.idSubjTeacher;
+    var code = req.body.code;
+    var idSubject;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        db.query("SELECT attendance FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=1 AND id_student=1) AND date_attendance BETWEEN '2019-05-13' AND '2019-05-18';", (err, rows) => {
+            if (err) return next(err);
+            console.log(rows[0].approval_code);
+            if (rows[0].approval_code === code) result = 1;
+            else result = 0;
+            res.send({result: result});
         });
         db.release();
         if (err) return next(err);
