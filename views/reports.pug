@@ -27,13 +27,11 @@ block content
                                 .col-3
                                     label.col-form-label Выбрать предмет
                                     select(id='selectSubjectReports' class='form-control')
-                                        option(value=0)
                                 .col-3
                                     label.col-form-label Выбрать студента
                                     select(id='selectStudentReports' class='form-control')
-                                        option(value=0)
                                 .col
-                                    button.btn.btn-primary(type='submit' onclick='saveResults()')
+                                    button.btn.btn-primary(type='submit' onclick='getReport()')
                                         | Получить
                                     #message
                                     if message

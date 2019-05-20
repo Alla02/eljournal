@@ -109,7 +109,7 @@ $(document).ready(function () {
     $(document).on("click", "td.attend" , function() {
         var $cell = $(this);
         if ($cell.hasClass("selected")) {
-            if (!$cell.hasClass("present") && !$cell.hasClass("absent") && !$cell.hasClass("late")) $cell.addClass("present");
+            if (!$cell.hasClass("present") && !$cell.hasClass("absent") && !$cell.hasClass("late")) $cell.addClass("present");//если ячейка без отметки, то добавляем класс present
             else {
                 if ($cell.hasClass("present")) {
                     $cell.removeClass("present").addClass("absent");

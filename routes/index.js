@@ -949,10 +949,13 @@ router.post("/studentsListReport", function(req, res, next) {
     var idGroup = req.body.idGroup;
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT id,last_name,first_name,second_name FROM persons WHERE id IN (SELECT id_person FROM students WHERE id_group=?);",[idGroup], (err, rows) => {
+        db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId" +
+            "    FROM students " +
+            "    INNER JOIN persons ON students.id_person=persons.id" +
+            "    WHERE id_group=?;",[idGroup], (err, rows) => {
             if (err) return next(err);
             rows.forEach(row => {
-                studentsList.push({ id: row.id, lastname: row.last_name, firstname: row.first_name, secondname: row.second_name });
+                studentsList.push({ id: row.stId, lastname: row.lastname, firstname: row.firstname, secondname: row.secondname });
             });
             res.send(JSON.stringify(studentsList));
         });
@@ -962,29 +965,30 @@ router.post("/studentsListReport", function(req, res, next) {
 });
 
 router.post("/subjectsListReport", function(req, res, next) {
-    var subjectsList = [];
-    console.log("subjectsList");
-    var idTeacher = req.body.idTeacher;
-    var idGroup = req.body.idGroup;
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        if (idTeacher===0) {
-            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=?);",[], (err, rows) => {
+        var subjectsList = [];
+        console.log("subjectsList");
+        var idTeacher = req.body.idTeacher;
+        var idGroup = req.body.idGroup;
+        console.log(idTeacher);
+        if (idTeacher==="0") {
+            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=?);",[idGroup], (err, rows) => {
                 if (err) return next(err);
+                console.log("1");
                 rows.forEach(row => {
                     subjectsList.push({ id: row.id, name: row.name});
                 });
-                console.log(subjectsList);
                 res.send(JSON.stringify(subjectsList));
             });
         }
         else {
-            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=? AND id_teacher=?);",[], (err, rows) => {
+            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=? AND id_teacher=?);",[idGroup,idTeacher], (err, rows) => {
                 if (err) return next(err);
+                console.log("2");
                 rows.forEach(row => {
                     subjectsList.push({ id: row.id, name: row.name});
                 });
-                console.log(subjectsList);
                 res.send(JSON.stringify(subjectsList));
             });
         }
@@ -994,19 +998,61 @@ router.post("/subjectsListReport", function(req, res, next) {
 });
 
 router.post("/getReport", function(req, res, next) {
-    var result;
-    var idSubjTeacher = req.body.idSubjTeacher;
-    var code = req.body.code;
-    var idSubject;
+    var result=[];
+    //req.body.beginDate, req.body.endDate, req.body.idGroup, req.body.idSubject, req.body.idStudent
+    console.log(req.body.beginDate, req.body.endDate, req.body.idGroup, req.body.idSubject, req.body.idStudent);
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT attendance FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=1 AND id_student=1) AND date_attendance BETWEEN '2019-05-13' AND '2019-05-18';", (err, rows) => {
-            if (err) return next(err);
-            console.log(rows[0].approval_code);
-            if (rows[0].approval_code === code) result = 1;
-            else result = 0;
-            res.send({result: result});
-        });
+        if (req.body.idSubject === "0" && req.body.idStudent === "0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
+            db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.beginDate,req.body.endDate], (err, rows) => {
+                if (err) return next(err);
+                console.log(rows);
+                console.log("1");
+                rows.forEach(row => {
+                    result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
+                });
+                res.send(JSON.stringify(result));
+            });
+        }
+        else {
+            if (req.body.idStudent === "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
+                db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.beginDate,req.body.endDate], (err, rows) => {
+                    if (err) return next(err);
+                    console.log(rows);
+                    console.log("2");
+                    rows.forEach(row => {
+                        result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
+                    });
+                    res.send(JSON.stringify(result));
+                });
+            }
+            else {
+                if (req.body.idStudent != "0" && req.body.idSubject === "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
+                    db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_student=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
+                        if (err) return next(err);
+                        console.log(rows);
+                        console.log("3");
+                        rows.forEach(row => {
+                            result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
+                        });
+                        res.send(JSON.stringify(result));
+                    });
+                }
+                else {
+                    if (req.body.idStudent != "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
+                        db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_student=? AND id_subject=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idStudent,req.body.idSubject,req.body.beginDate,req.body.endDate], (err, rows) => {
+                            if (err) return next(err);
+                            console.log(rows);
+                            console.log("4");
+                            rows.forEach(row => {
+                                result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
+                            });
+                            res.send(JSON.stringify(result));
+                        });
+                    }
+                }
+            }
+        }
         db.release();
         if (err) return next(err);
     });
