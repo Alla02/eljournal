@@ -26,16 +26,31 @@ $(document).ready(function () {
         var idGroup = $("#selectGroupReports option:selected").val();
         var idTeacher = $("#idTeacher").val();
         $.ajax({
-            url: "/reportsLists",
+            url: "/studentsListReport",
             type: "POST",
             data: jQuery.param({idGroup: idGroup}),
             dataType: "json"
         }).done(function (data) {
+            console.log(data);
             //$("#selectStudent").removeClass("div-none");
-            $('#student').find('option').remove().end();
+            /*$('#student').find('option').remove().end();
             for (var i in data) {
                 $('#student').append('<option value="'+data[i].idSt+'">' + data[i].fullName + '</option>');
-            }
+            }*/
+        });
+
+        $.ajax({
+            url: "/subjectsListReport",
+            type: "POST",
+            data: jQuery.param({idGroup: idGroup, idTeacher: idTeacher}),
+            dataType: "json"
+        }).done(function (data) {
+            console.log(data);
+            //$("#selectStudent").removeClass("div-none");
+            /*$('#student').find('option').remove().end();
+            for (var i in data) {
+                $('#student').append('<option value="'+data[i].idSt+'">' + data[i].fullName + '</option>');
+            }*/
         });
     });
 

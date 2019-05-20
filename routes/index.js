@@ -944,21 +944,50 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
     });
 });
 
-router.post("/reportsLists", function(req, res, next) {
-    var subjectsList = [];
+router.post("/studentsListReport", function(req, res, next) {
     var studentsList = [];
-    var idSubjTeacher = req.body.idSubjTeacher;
-    var code = req.body.code;
-    var idSubject;
+    var idGroup = req.body.idGroup;
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT attendance FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=1 AND id_student=1) AND date_attendance BETWEEN '2019-05-13' AND '2019-05-18';", (err, rows) => {
+        db.query("SELECT id,last_name,first_name,second_name FROM persons WHERE id IN (SELECT id_person FROM students WHERE id_group=?);",[idGroup], (err, rows) => {
             if (err) return next(err);
-            console.log(rows[0].approval_code);
-            if (rows[0].approval_code === code) result = 1;
-            else result = 0;
-            res.send({result: result});
+            rows.forEach(row => {
+                studentsList.push({ id: row.id, lastname: row.last_name, firstname: row.first_name, secondname: row.second_name });
+            });
+            res.send(JSON.stringify(studentsList));
         });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/subjectsListReport", function(req, res, next) {
+    var subjectsList = [];
+    console.log("subjectsList");
+    var idTeacher = req.body.idTeacher;
+    var idGroup = req.body.idGroup;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        if (idTeacher===0) {
+            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=?);",[], (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                    subjectsList.push({ id: row.id, name: row.name});
+                });
+                console.log(subjectsList);
+                res.send(JSON.stringify(subjectsList));
+            });
+        }
+        else {
+            db.query("SELECT id,name FROM subjects WHERE id IN (SELECT id_subject FROM subjteacher WHERE id_group=? AND id_teacher=?);",[], (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                    subjectsList.push({ id: row.id, name: row.name});
+                });
+                console.log(subjectsList);
+                res.send(JSON.stringify(subjectsList));
+            });
+        }
         db.release();
         if (err) return next(err);
     });
