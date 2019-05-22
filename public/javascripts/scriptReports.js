@@ -68,47 +68,46 @@ function getReport() {
         type: "POST",
         url: "/getReport",
         data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent }),
+        dataType: "json"
     }).done(function (res) {
-        console.log(res);
+        console.log(typeof res);
         var present=0, absent=0,late=0;
-        console.log(res[1].attendance, res[1].id,res[1].dateAtt);
         //id: row.id, attendance: row.attendance, dateAtt: row.date_attendance
-        $.each( res.items, function( i, item ) {
-            if (item.attendance===1) present++;
-        });
         for (var i in res) {
             if (res[i].attendance===1) present++;
-            if (res[i].attendance==="0") absent++;
-            if (res[i].attendance==="2") late++;
-            //console.log(data[i].attendance);
-            //console.log(present, absent,late);
+            if (res[i].attendance===0) absent++;
+            if (res[i].attendance===2) late++;
         }
         console.log(present, absent,late);
-    });
-}
-/*
-var ctx = document.getElementById('myChart');
-var attData = {
-    labels: [
-        "Присутствовал",
-        "Отсутствовал",
-        "Опоздал"
-    ],
-    datasets: [
-        {
-            data: [133.3, 86.2, 52.2],
-            backgroundColor: [
-                "#63FF84",
-                "#FF6384",
-                "#6384FF"
-            ]
-        }]
-};
+        $('#results-chart').remove();
+        $('.chart-container').append('<canvas id="results-chart" width="200" height="200"></canvas>'); //очищаем поле от предыдущего графика для создания нового
+        var ctx = document.getElementById('results-chart');
+        var attData = {
+            labels: [
+                "Присутствовал",
+                "Отсутствовал",
+                "Опоздал"
+            ],
+            datasets: [
+                {
+                    data: [present, absent, late],
+                    backgroundColor: [
+                        "#63FF84",
+                        "#FF6384",
+                        "#6384FF"
+                    ]
+                }]
+        };
 
-var pieChart = new Chart(ctx, {
-    //responsive: true,
-    type: 'pie',
-    data: attData
-});
-*/
+        var pieChart = new Chart(ctx, {
+            //responsive: true,
+            type: 'pie',
+            data: attData
+        });
+    });
+
+
+}
+
+
 

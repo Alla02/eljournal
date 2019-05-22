@@ -31,12 +31,9 @@ router.get('/attendance/:id', function(req, res, next) {
       email = req.user.email;
       secondname = req.user.second_name;
     }
-    db.query("SELECT * FROM weekdays", (err, rows) => {
+      db.query("SELECT name FROM studyGroups WHERE id=?",req.params.id, (err, rows) => {
       if (err) return next(err);
-      var weekday = [];
-      rows.forEach(row => {
-        weekday.push({ id: row.id, name: row.name });
-      });
+      var groupName = rows[0].name;
       var times = [];
       db.query("SELECT * FROM time", (err, rows) => {
         if (err) return next(err);
@@ -49,14 +46,14 @@ router.get('/attendance/:id', function(req, res, next) {
           rows.forEach(row => {
             listStudents.push({ studentId: row.stid, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname, birthyear: row.birthyear });
           });
-          if (listStudents.length===0) res.render("attendance", {title: "Посещаемость группы",weekday: weekday,times: times,listStudents:listStudents,login: login,
+          if (listStudents.length===0) res.render("attendance", {title: "Посещаемость группы",times: times,listStudents:listStudents,login: login,
             lastname: lastname,firstname: firstname,secondname: secondname,type_user: type_user,email: email,
             message: req.flash("У этой группы нет студентов") });
           else {
             db.query("SELECT * FROM schedule WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?)",req.params.id, (err, rows) => {
               if (err) return next(err);
-              if (rows) res.render("attendance", {title: "Посещаемость группы",weekday: weekday,
-                times: times,listStudents: listStudents,login: login,
+              if (rows) res.render("attendance", {title: "Посещаемость группы",
+                times: times,listStudents: listStudents,groupName: groupName,login: login,
                 lastname: lastname,firstname: firstname,secondname: secondname,type_user: type_user,email: email,
                 message: req.flash("Для этой группы нет занятий") });
               else {
@@ -88,14 +85,6 @@ router.get('/attendance/:id', function(req, res, next) {
                       rows.forEach(row => {
                         typesubject.push({ id: row.id, name: row.name });
                       });
-                      var typeweek = [];
-                      db.query("SELECT * FROM typeweek", (err, rows) => {
-                        if (err) {
-                          return next(err);
-                        }
-                        rows.forEach(row => {
-                          typeweek.push({ id: row.id, name: row.name });
-                        });
                         var semester = [];
                         db.query("SELECT * FROM semester", (err, rows) => {
                           if (err) {
@@ -105,12 +94,10 @@ router.get('/attendance/:id', function(req, res, next) {
                             semester.push({ id: row.id, start: row.start, end: row.end, name: row.name });
                           });
                           res.render("attendance", {title: "Посещаемость группы",
-                            weekday: weekday,
                             times: times,
                             subjects: subjects,
                             teachers: teachers,
-                            typesubject: typesubject,
-                            typeweek: typeweek,
+                            typesubject: typesubject, groupName: groupName,
                             semester: semester,
                             listStudents: listStudents,
                             login: login,
@@ -118,10 +105,8 @@ router.get('/attendance/:id', function(req, res, next) {
                             firstname: firstname,
                             secondname: secondname,
                             type_user: type_user,
-                            email: email,
-                            message: req.flash("registerMessage") });
+                            email: email });
                         });
-                      });
                     });
                   });
                 });
@@ -358,6 +343,28 @@ router.post("/saveAttendance", function(req, res, next) {
     db.release();
     if (err) return next(err);
   });
+});
+
+router.post("/getTeachersName", function(req, res, next) {
+    var result=[];
+    var idSubjTeacher = req.body.idSubjTeacher;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        db.query("SELECT first_name, last_name,second_name FROM persons WHERE id=(SELECT id_person FROM teachers WHERE id=(SELECT id_teacher FROM subjteacher WHERE id=?));", [idSubjTeacher], (err, rows) => {
+            if (err) return next(err);
+            console.log(rows);
+            rows.forEach(row => {
+                result.push({
+                    firstname: row.first_name,
+                    secondname: row.second_name,
+                    lastname: row.last_name
+                });
+            });
+            res.send(JSON.stringify(result));
+        });
+        db.release();
+        if (err) return next(err);
+    });
 });
 
 module.exports = router;

@@ -9,7 +9,7 @@ block content
             .row.justify-content-center
                 .col-md-10
                     .card
-                        .card-header Посещаемость
+                        .card-header Посещаемость группы #{groupName}
                         .card-body
                             div(class="tab-pane active" id="tab2")
                                 input(type='text', name='selectDay' class='form-control', placeholder='Выбрать день' id="selectDay")
@@ -30,6 +30,7 @@ block content
                             .col-md-6.offset-md-4
                                 label.col-md-4.col-form-label.text-md-right Выбрать занятие
                                 select(id='selectPair' class='form-control')
+                                p#teachersName.col-md-4.col-form-label.text-md-left
                                 label.col-md-4.col-form-label.text-md-right Проверочный код
                                 input(type='text' id='code' class='form-control required', placeholder='Код')
                             .col-md-6.offset-md-4

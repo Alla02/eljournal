@@ -20,6 +20,7 @@ $(document).ready(function () {
 
 
     function attendance(day, seldate) {
+        var times =["8:30","10:10", "11:50", "13:50", "15:30", "17:10", "18:50"];
         var url = window.location.pathname;
         var groupId_ = url.substring(url.lastIndexOf('/') + 1);
         $.ajax({
@@ -50,13 +51,14 @@ $(document).ready(function () {
             if (dayOfWeek.length){
                 $('#subjects').append('<td class="typeLection stickyLeft"></td>');
                 for (var i in data) {
-                if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice">'+data[i].subjectName+'</td>');
-                else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection">'+data[i].subjectName+'</td>');
-                //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
-                //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
-                $('.check').append('<td class="attend"></td>');
-                $('.check2').append('<td class="chkParent"></td>');
-                $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + '</option>');
+                    var shortSubject = (data[i].subjectName).replace('Дисциплина по выбору','ДПВ'); //сокращение дисциплины по выбору.
+                    if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice">'+shortSubject+'</td>');
+                    else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection">'+shortSubject+'</td>');
+                    //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
+                    //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
+                    $('.check').append('<td class="attend"></td>');
+                    $('.check2').append('<td class="chkParent"></td>');
+                    $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + " ("+ times[data[i].numPair-1]+")"+'</option>');
                 }
                 /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
                 $('.chkParent').on("change", function() {
@@ -75,14 +77,14 @@ $(document).ready(function () {
                 }).done(function (data2) {
                     console.log("data2 "+data2);
                     for (var i in data2) {
-                        console.log("d "+data2[i].idSubjTeacher +" " +data2[i].idStudent);
+                        //console.log("d "+data2[i].idSubjTeacher +" " +data2[i].idStudent);
                         var column = $("#" + data2[i].idSubjTeacher).index();
-                        console.log(column);
+                       // console.log(column);
                        // var column = $(cell).index();
                         //var idSubj = $('#subjects').find('td').eq(column).attr("id");
                         //var idStud = $(cell).parent().attr("id");
                         //$("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
-                        console.log("att "+data2[i].attendance);
+                        //console.log("att "+data2[i].attendance);
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
                             if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");
@@ -97,6 +99,7 @@ $(document).ready(function () {
     $(function () {
         $('#selectDay').on('change', function () {
             //alert($(this).val());
+            $('#teachersName').text("");
             if( $(this).val()!= undefined){
                 var t = $(this).val().split(/[-]/);
                 var d = new Date(Date.UTC(t[0], t[1]-1, t[2]));
@@ -161,6 +164,15 @@ $(document).ready(function () {
         console.log(col);
         $("tbody td.attend:nth-child(" + col + ")").addClass("selected");
         $("h2").text("");
+        $.ajax({
+            type: "POST",
+            url: "/getTeachersName",
+            data: jQuery.param({idSubjTeacher: idSubjTeacher}),
+            dataType: "json"
+        }).done(function (data) {
+            $('#teachersName').text(data[0].lastname + " " + data[0].firstname.substring(1,0) + ". " + data[0].secondname.substring(1,0)+".");
+            //$("#teachersName").append(data[0].lastname + " " + data[0].lastname + " " + data[0].secondname);
+        });
     });
 });
 
