@@ -57,7 +57,7 @@ $(document).ready(function () {
                     //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
                     //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
                     $('.check').append('<td class="attend"></td>');
-                    $('.check2').append('<td class="chkParent"></td>');
+                    //$('.check2').append('<td class="chkParent"></td>');
                     $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + " ("+ times[data[i].numPair-1]+")"+'</option>');
                 }
                 /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ

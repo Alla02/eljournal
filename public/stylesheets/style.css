@@ -80,9 +80,17 @@ a {
     border-radius: 20px;
 }
 
+.table-responsive {
+    max-height:400px;
+}
 /*для списка студентов, прикрепляется влево*/
 .stickyLeft {
     position: sticky;
     left: -2px;
+    background: #FFFFFF;
+}
+
+.stickyHead {
+    position: sticky;
     background: #FFFFFF;
 }
