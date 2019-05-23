@@ -71,20 +71,24 @@ function UserRegister(a) {
     if (val=="Преподаватель") {
         document.getElementById("selectGroup").style.display='none';
         document.getElementById("selectStudent").style.display='none';
+        document.getElementById("selectifCanView").style.display='none';
     }
     else {
         document.getElementById("selectGroup").style.display='block';
         if (val=="Куратор") {
             document.getElementById("selectStudent").style.display='none';
             document.getElementById("studyGroup").setAttribute("multiple","multiple");
+            document.getElementById("selectifCanView").style.display='none';
         }
         if (val=="Студент") {
             document.getElementById("studyGroup").removeAttribute("multiple");
             document.getElementById("selectStudent").style.display='none';
+            document.getElementById("selectifCanView").style.display='block';
         }
         if (val=="Родитель") {
             document.getElementById("studyGroup").removeAttribute("multiple");
             document.getElementById("selectStudent").style.display='block';
+            document.getElementById("selectifCanView").style.display='none';
         }
     }
 };

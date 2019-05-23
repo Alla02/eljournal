@@ -18,7 +18,65 @@ isLoggedIn = function(req, res, next) {
   }
 };
 
-router.get('/attendance/:id', function(req, res, next) {
+router.get('/attendance/:id',isLoggedIn, function(req, res, next) {
+  var listStudents = [];
+  pool.getConnection(function(err, db) {
+    if (err) return next(err);
+    var login,lastname,secondname,firstname,type_user,email = "";
+    if (req.user){
+      login = req.user.login;
+      lastname = req.user.last_name;
+      firstname = req.user.first_name;
+      type_user = req.user.user_type;
+      email = req.user.email;
+      secondname = req.user.second_name;
+    }
+    db.query("SELECT canView, id_group FROM students WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?));",login, (err, rows) => {
+      if (err) return next(err);
+      if (rows.length != 0) {
+        if (rows[0].canView ===1 && rows[0].id_group === Number(req.params.id)) {//проверка является ли пользователь старостой и принадлежит ли группе
+          db.query("SELECT name FROM studyGroups WHERE id=?;", req.params.id, (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0) {
+              console.log("nameGroup");
+              var groupName = rows[0].name;
+              console.log(req.params.id);
+              db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, persons.BirthYear as birthyear, students.id as stid FROM persons INNER JOIN students ON students.id_person=persons.id WHERE students.id_group=?;", req.params.id, (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                  listStudents.push({
+                    studentId: row.stid,
+                    firstname: row.firstname,
+                    lastname: row.lastname,
+                    secondname: row.secondname,
+                    birthyear: row.birthyear
+                  });
+                });
+                res.render("attendance", {
+                  groupName: groupName,
+                  listStudents: listStudents,
+                  login: login,
+                  lastname: lastname,
+                  firstname: firstname,
+                  secondname: secondname,
+                  type_user: type_user,
+                  email: email
+                });
+              });
+            } else res.redirect("/");
+            db.release();
+            if (err) return next(err);
+          });
+        }
+        else res.redirect("/");
+      }
+    });
+  });
+});
+
+/*
+
+router.get('/attendance/:id',isLoggedIn, function(req, res, next) {
   var curGroup = []; var listStudents = [];
   pool.getConnection(function(err, db) {
     if (err) return next(err);
@@ -70,7 +128,7 @@ router.get('/attendance/:id', function(req, res, next) {
                   /*
                   rows.forEach(row => {
                       subjects.push({ id: row.id, name: row.name });
-                  });*/
+                  });*/ /*
                   var teachers = [];
                   db.query("SELECT * FROM persons WHERE id IN (SELECT id_person FROM teachers)", (err, rows) => {
                     if (err) return next(err);
@@ -120,6 +178,8 @@ router.get('/attendance/:id', function(req, res, next) {
     });
   });
 });
+*/
+
 
 function getWeek(begin_date,week,selectedDate) {
   var day = ("Воскресенье", "Понедельник", "Вторник",

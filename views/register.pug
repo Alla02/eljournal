@@ -43,7 +43,7 @@ block content
                     .col-md-6
                         input(type='text', name='birthyear' class='form-control', placeholder='Дата рождения' id="birthyear")
                   .form-group.row
-                    label.col-md-4.col-form-label.text-md-right Тип пользователя
+                    label.col-md-4.col-form-label.text-md-right Тип пользователя:
                     .col-md-6
                       select(name='user_type' class='form-control' id='SelectTypeReg' onChange="UserRegister(this)")
                         option Преподаватель
@@ -52,16 +52,21 @@ block content
                         option Студент
                   div(id='selectGroup' class='div-none')
                     .form-group.row
-                      label.col-md-4.col-form-label.text-md-right Номер группы
+                      label.col-md-4.col-form-label.text-md-right Номер группы:
                       .col-md-6
                         select(name='studyGroup' id='studyGroup' class='form-control' multiple="multiple")
                           each val in studyGroups
                             option #{val.name}
                   div(id='selectStudent' class='div-none')
                     .form-group.row
-                      label.col-md-4.col-form-label.text-md-right Студент
+                      label.col-md-4.col-form-label.text-md-right Студент:
                       .col-md-6
                         select(name='student' id='student' class='form-control' multiple="multiple")
+                  div(id='selectifCanView' class='div-none')
+                    .form-group.row
+                      label.col-md-4.col-form-label.text-md-right Староста:
+                      .col-md-6
+                        input(type='checkbox' name='canView' id='canView' value='1')
                   .col-md-6.offset-md-4
                     button.btn.btn-primary(type='submit' id="writeDown1")
                       | Зарегистрироваться

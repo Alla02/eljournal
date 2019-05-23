@@ -75,7 +75,6 @@
 											}
                                             var stgroup = [];
                                             stgroup =  req.body.studyGroup;
-
                                             user.password = hash;
                                             user.login = req.body.login;
                                             user.user_type = req.body.user_type;
@@ -84,8 +83,9 @@
                                             user.last_name = req.body.last_name;
                                             user.birthyear = req.body.birthyear;
                                             //user.studyGroup = req.body.studyGroup;
-                                            console.log(user.birthyear);
-                                            console.log("st " +stgroup);
+                                            var canView;
+                                            if (req.body.canView === "1") canView = 1;
+                                            else canView=0;
 
                                             db.query("INSERT into users (login,password,typeUser,email) values (?,?,?,?);",[user.login,user.password,user.user_type,req.body.email], function (err) {
                                                 if (err) {
@@ -113,7 +113,7 @@
                                                                             var idPerson = row[0].id;
                                                                             var rand = 1000 - 0.5 + Math.random() * (9999 - 1000 + 1)
                                                                             rand = Math.round(rand);
-                                                                            if (req.body.user_type=='Преподаватель') {
+                                                                            if (req.body.user_type==='Преподаватель') {
                                                                                 db.query("INSERT into teachers (approval_code, id_person) values (?,?);",[rand,idPerson], function (err) {
                                                                                     if (err) {
                                                                                         console.log(err);
@@ -122,8 +122,8 @@
                                                                                 })
                                                                             }
                                                                             else {
-                                                                                if (req.body.user_type=='Студент') {
-                                                                                    db.query("INSERT into students (id_person, id_group) VALUES ('"+idPerson+"',"+"(SELECT id from studyGroups where name='"+[req.body.studyGroup]+"'));", function (err) {
+                                                                                if (req.body.user_type==='Студент') {
+                                                                                    db.query("INSERT into students (id_person, canView, id_group) VALUES ('"+idPerson+"',"+canView+",(SELECT id from studyGroups where name='"+[req.body.studyGroup]+"'));", function (err) {
                                                                                         if (err) {
                                                                                             console.log(err);
                                                                                         }
@@ -131,7 +131,7 @@
                                                                                     })
                                                                                 }
                                                                                 else {
-                                                                                    if (req.body.user_type=='Родитель') {
+                                                                                    if (req.body.user_type==='Родитель') {
                                                                                         db.query("INSERT into parents (id_person) values (?);",[idPerson], function (err) {
                                                                                             if (err) {
                                                                                                 console.log(err);
@@ -165,7 +165,7 @@
                                                                                         })
                                                                                     }
                                                                                     else {
-                                                                                        if (req.body.user_type=='Куратор') {
+                                                                                        if (req.body.user_type==='Куратор') {
                                                                                             db.query("INSERT into curators (id_person) values (?);",[idPerson], function (err) {
                                                                                                 if (err) {
                                                                                                     console.log(err);

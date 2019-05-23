@@ -52,8 +52,8 @@ $(document).ready(function () {
                 $('#subjects').append('<td class="typeLection stickyLeft"></td>');
                 for (var i in data) {
                     var shortSubject = (data[i].subjectName).replace('Дисциплина по выбору','ДПВ'); //сокращение дисциплины по выбору.
-                    if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice">'+shortSubject+'</td>');
-                    else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection">'+shortSubject+'</td>');
+                    if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice chkParent stickyHead">'+shortSubject+'</td>');
+                    else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection chkParent stickyHead">'+shortSubject+'</td>');
                     //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
                     //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
                     $('.check').append('<td class="attend"></td>');
