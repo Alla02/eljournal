@@ -99,7 +99,7 @@
                                                         }
                                                         else{
                                                             var idUser = row[0].id;
-                                                            db.query("INSERT into persons (first_name,last_name,second_name,id_user) values (?,?,?,?);",[user.first_name,user.last_name,user.second_name,idUser], function (err) {
+                                                            db.query("INSERT into persons (first_name,last_name,second_name,id_user,birthYear) values (?,?,?,?,?);",[user.first_name,user.last_name,user.second_name,idUser,req.body.birthyear], function (err) {
                                                                 if (err) {
                                                                     console.log(err);
                                                                 }

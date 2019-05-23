@@ -25,13 +25,15 @@ $(document).ready(function () {
     $("#selectGroupReports").on("change", function() {
         var idGroup = $("#selectGroupReports option:selected").val();
         var idTeacher = $("#idTeacher").val();
+        var idStudent = $("#idStudent").val();
+        var idParent = $("#idParent").val();
         //console.log(idTeacher);
         //$("#selectStudentReports").append('<option value="0"></option>');
         //$("#selectSubjectReports").append('<option value="0"></option>');
         $.ajax({
             url: "/studentsListReport",
             type: "POST",
-            data: jQuery.param({idGroup: idGroup}),
+            data: jQuery.param({idGroup: idGroup, idStudent: idStudent, idParent: idParent}),
             dataType: "json"
         }).done(function (data) {
             //console.log(data);

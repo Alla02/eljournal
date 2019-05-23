@@ -898,7 +898,7 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         var login,lastname,firstname,secondname,type_user,email = "";
-        var studyGroups = []; var sqlgroups; var idTeacher;
+        var studyGroups = []; var sqlgroups; var idTeacher, idStudent,idParent;
         if (req.user){
             login = req.user.login;
             lastname = req.user.last_name;
@@ -908,6 +908,8 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
             secondname = req.user.second_name;
         }
         if (type_user==="Преподаватель") {
+            idStudent = 0;
+            idParent = 0;
             sqlgroups ="SELECT id,name FROM studyGroups WHERE id IN (SELECT id_group FROM subjteacher WHERE id_teacher=(SELECT id FROM teachers WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))))";
             db.query("SELECT id FROM teachers WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
                 if (err) return next(err);
@@ -916,11 +918,27 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
         }
         if (type_user==="Куратор") {
             idTeacher = 0;
+            idStudent = 0;
+            idParent = 0;
             sqlgroups = "SELECT id,name FROM studygroups WHERE id IN (SELECT id_group FROM groupcurator WHERE id_curator=(SELECT id FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))))";
         }
         if (type_user==="Студент") {
             idTeacher = 0;
+            idParent = 0;
             sqlgroups = "SELECT id,name FROM studygroups WHERE id=(SELECT id_group FROM students WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?)))";
+            db.query("SELECT id FROM students WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+                if (err) return next(err);
+                idStudent = rows[0].id;
+            });
+        }
+        if (type_user==="Родитель") {
+            idTeacher = 0;
+            idStudent = 0;
+            sqlgroups = "SELECT id,name FROM studygroups WHERE id IN (SELECT id_group FROM students WHERE id IN (SELECT id_student FROM parentstudent WHERE id_parent=(SELECT id FROM parents WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?)))))";
+            db.query("SELECT id FROM parents WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+                if (err) return next(err);
+                idParent = rows[0].id;
+            });
         }
         db.query(sqlgroups,[login], (err, rows) => {
             if (err) return next(err);
@@ -936,7 +954,9 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
                 type_user: type_user,
                 email: email,
                 studyGroups: studyGroups,
-                idTeacher: idTeacher
+                idTeacher: idTeacher,
+                idStudent: idStudent,
+                idParent: idParent
             });
         });
         db.release();
@@ -947,18 +967,57 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
 router.post("/studentsListReport", function(req, res, next) {
     var studentsList = [];
     var idGroup = req.body.idGroup;
+    var idStudent = req.body.idStudent;
+    var idParent = req.body.idParent;
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId" +
-            "    FROM students " +
-            "    INNER JOIN persons ON students.id_person=persons.id" +
-            "    WHERE id_group=?;",[idGroup], (err, rows) => {
-            if (err) return next(err);
-            rows.forEach(row => {
-                studentsList.push({ id: row.stId, lastname: row.lastname, firstname: row.firstname, secondname: row.secondname });
+        if (idStudent==="0" && idParent === "0") {
+            db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId" +
+                "    FROM students " +
+                "    INNER JOIN persons ON students.id_person=persons.id" +
+                "    WHERE id_group=?;", [idGroup], (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                    studentsList.push({
+                        id: row.stId,
+                        lastname: row.lastname,
+                        firstname: row.firstname,
+                        secondname: row.secondname
+                    });
+                });
+                res.send(JSON.stringify(studentsList));
             });
-            res.send(JSON.stringify(studentsList));
-        });
+        }
+        else {
+            if (idStudent!="0" && idParent === "0") {//если студент
+                db.query("SELECT id as stId, last_name as lastname, second_name as secondname, first_name as firstname FROM persons WHERE id=(SELECT id_person FROM students WHERE id=?);", [idStudent], (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        studentsList.push({
+                            id: row.stId,
+                            lastname: row.lastname,
+                            firstname: row.firstname,
+                            secondname: row.secondname
+                        });
+                    });
+                    res.send(JSON.stringify(studentsList));
+                });
+            }
+            else {//если родитель
+                db.query("SELECT id as stId, last_name as lastname, second_name as secondname, first_name as firstname FROM persons WHERE id IN (SELECT id_person FROM students WHERE id_group=? AND id IN (SELECT id_student FROM parentstudent WHERE id_parent=?));", [idGroup,idParent], (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        studentsList.push({
+                            id: row.stId,
+                            lastname: row.lastname,
+                            firstname: row.firstname,
+                            secondname: row.secondname
+                        });
+                    });
+                    res.send(JSON.stringify(studentsList));
+                });
+            }
+        }
         db.release();
         if (err) return next(err);
     });
