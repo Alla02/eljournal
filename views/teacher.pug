@@ -2,20 +2,21 @@ extends layout
 block variables
   include variables
 block content
-  br
-  h2= "Изменение данных преподавателя"
-  br
-  form(action='/teacher/'+val.id, method='post')
-    div(class="form-row")
-      div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
-        input(name='lastname', class="form-control" type="text" value=val.lastname)
-      div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
-        input(name='firstname', class="form-control" type="text" value=val.firstname)
-      div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
-        input(name='secondname', class="form-control" type="text" value=val.secondname)
-      div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
-        input(name='code', class="form-control" type="text" value=val.code)
-      div(class="col")
-        input(type='submit',class="btn btn-primary", value='Изменить')
-        font()=" "
-        a(class="btn btn-secondary" href='/listTeacher' role="button") Отмена
+  .container
+    br
+    h2= "Изменение данных преподавателя"
+    br
+    form(action='/teacher/'+val.id, method='post')
+      .form-row
+        .col-lg-2.col-md-2.col-sm-2.col-xs-6.mb-3
+          input(name='lastname' class="form-control" type="text" value=val.lastname)
+        .col-lg-2.col-md-2.col-sm-2.col-xs-6.mb-3
+          input(name='firstname' class="form-control" type="text" value=val.firstname)
+        .col-lg-2.col-md-2.col-sm-2.col-xs-6.mb-3
+          input(name='secondname', class="form-control" type="text" value=val.secondname)
+        .col-lg-2.col-md-2.col-sm-2.col-xs-6.mb-3
+          input(name='code' class="form-control" type="text" value=val.code)
+        .col
+          input(type='submit' class="btn btn-primary", value='Изменить')
+          font()=" "
+          a(class="btn btn-secondary" href='/listTeachers' role="button") Отмена

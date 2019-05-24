@@ -66,10 +66,11 @@ function getReport() {
     var idGroup = $("#selectGroupReports").val();
     var idSubject = $("#selectSubjectReports").val();
     var idStudent = $("#selectStudentReports").val();
+    var studentId = $("#idStudent").val();//id студента со страницы
     $.ajax({
         type: "POST",
         url: "/getReport",
-        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent }),
+        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId}),
         dataType: "json"
     }).done(function (res) {
         console.log(typeof res);

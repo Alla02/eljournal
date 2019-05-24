@@ -223,12 +223,9 @@ router.get("/regAllTeachers", function(req, res, next) { //регистраци�
 */
 router.post("/getSchedule", function(req, res, next) { //импорт расписания
     pool.getConnection(function(err, db) {
-        if (err) return next(err); // not connected!
+        if (err) return next(err);
         let hash;
-        //var jsonData;
-        //let rawdata2 = fs.readFileSync('file.json');
-        //var jsonData = JSON.parse(rawdata);
-        //console.log(jsonData);
+        var address = req.body.address;
         function getGroups() {//заполняем группы
             console.log("getGroups");
             jsonData.forEach(row => {
@@ -442,7 +439,7 @@ router.post("/getSchedule", function(req, res, next) { //импорт распи
 
         let jsonData;
         async function getFile() {
-            await http.get('http://185.43.4.44:3000/getSchedule', (resp) => {//подключение к сайту расписания и загрузка json файла
+            await http.get(address, (resp) => {//подключение к сайту расписания и загрузка json файла
                 let data = '';
                 // A chunk of data has been recieved.
                 resp.on('data', (chunk) => {

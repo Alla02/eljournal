@@ -362,39 +362,24 @@
             },
 
             function (req, login, password, done) {
-                    db.query("SELECT * FROM users WHERE login=? or email=?", [login,login] , function (err, row) {
-                        if (err) {
-                            return done(err);
-                        } //end err
-                        console.log(login);
-                        console.log(row);
-                        if (err) {
-                            return done(err);
-                        } //end err
-                        if (!row.length) {
-                        return done(null, false, req.flash('loginMessage', 'Неверно введенный логин/email'));
-                        }
-                        var user = {};
-                        user.login = row[0].login;
-                        user.user_type = row[0].typeUser;
-                        user.email = row[0].email;
-                        var sql2 = "select * from persons where id_user='" + row[0].id + "'";
-                        db.query(sql2, function (err, row) {
-                            user.first_name = row[0].first_name;
-                            user.last_name = row[0].last_name;
-                            user.second_name = row[0].second_name;
-                        });
-                        bcrypt.compare(password, row[0].password, function (err, res) {
-                            console.log(row[0].password);
-                            console.log(password);
-                            if (res) {
-                                console.log("res");
-                                return done(null, user);
-                            } else {console.log("notres");
-                                return done(null, false, req.flash('loginMessage', 'Неверно введенный логин и/или пароль'));
-                            }
-                        }); //end compare
-                    });//end db.get
+                db.query("SELECT * FROM users WHERE login=? or email=?", [login,login] , function (err, row) {
+                    if (err) return done(err);
+                    if (!row.length) return done(null, false, req.flash('loginMessage', 'Неверно введенный логин/email'));
+                    var user = {};
+                    user.login = row[0].login;
+                    user.user_type = row[0].typeUser;
+                    user.email = row[0].email;
+                    var sql2 = "select * from persons where id_user='" + row[0].id + "'";
+                    db.query(sql2, function (err, row) {
+                        user.first_name = row[0].first_name;
+                        user.last_name = row[0].last_name;
+                        user.second_name = row[0].second_name;
+                    });
+                    bcrypt.compare(password, row[0].password, function (err, res) {
+                        if (res) return done(null, user);
+                        else return done(null, false, req.flash('loginMessage', 'Неверно введенный логин и/или пароль'));
+                    }); //end compare
+                });//end db.get
             })); //end local-login
 
         app.use(passport.initialize());

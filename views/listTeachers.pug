@@ -1,0 +1,18 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+      h1.mt-5 Список преподавателей
+      br
+      ul(class="list-group")
+      each val in result
+        li(class="list-group-item serviceList" id = val.id ) #{val.lastname} #{val.firstname} #{val.secondname}, #{val.code}
+          i(class="caret fa fa-caret-down")
+        div(class="slide")
+          br
+          a(class="btn btn-dark" href='/teacher/' + val.id role="button") Изменить
+          font()=" "
+          a(class="btn btn-danger" href='/delTeacher/' + val.id role="button") Удалить
+          p
