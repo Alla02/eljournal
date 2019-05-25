@@ -14,6 +14,20 @@ $(function(){
             format: 'YYYY-MM-DD'
         },
     });
+    $('#startsemester').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        },
+    });
+    $('#endsemester').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        },
+    });
     //$('#birthyear2').val('');
     $('#birthyear').val('');
     $('#birthyear').attr("placeholder","Дата рождения");

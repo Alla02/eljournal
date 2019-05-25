@@ -1,0 +1,24 @@
+extends layout
+block variables
+  include variables
+block content
+  br
+  .container
+    h2= "Изменение данных семестра"
+    br
+    form(action='/semester/'+val.id, method='post')
+      div(class="form-row")
+        div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+          input(name="startsemester" id="startsemester" class="form-control" type="text" value=val.start)
+        div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+          input(name='endsemester' id="endsemester" class="form-control" type="text" value=val.end)
+        div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+          input(name='name', class="form-control" type="text" value=val.name)
+        div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+          select(name='week' class='form-control')
+            option Верхняя
+            option Нижняя
+        div(class="col")
+          input(type='submit',class="btn btn-primary", value='Изменить')
+          font()=" "
+          a(class="btn btn-secondary" href='/listSemesters' role="button") Отмена

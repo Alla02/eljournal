@@ -8,6 +8,13 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var importSchedule = require('./routes/importSchedule');
 var attendanceRouter = require('./routes/attendance');
+var teachersRouter = require('./routes/teachers');
+var curatorsRouter = require('./routes/curators');
+var parentsRouter = require('./routes/parents');
+var studentsRouter = require('./routes/students');
+var studygroupsRouter = require('./routes/studygroups');
+var subjectsRouter = require('./routes/subjects');
+var semestersRouter = require('./routes/semesters');
 
 var app = express();
 
@@ -46,6 +53,13 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/', importSchedule);
 app.use('/', attendanceRouter);
+app.use('/', teachersRouter);
+app.use('/', curatorsRouter);
+app.use('/', parentsRouter);
+app.use('/', studentsRouter);
+app.use('/', studygroupsRouter);
+app.use('/', subjectsRouter);
+app.use('/', semestersRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

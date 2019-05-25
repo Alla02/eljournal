@@ -1,0 +1,33 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+      h1.mt-5 Список семестров
+      br
+      form(action='/addSemester', method='post')
+        div(class="form-row")
+          div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+            input(name="startsemester" id="startsemester" class="form-control" type="text")
+          div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+            input(name='endsemester' id="endsemester" class="form-control" type="text")
+          div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+            input(name='name', class="form-control" type="text")
+          div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+            select(name='week' class='form-control')
+              option Верхняя
+              option Нижняя
+          div(class="col-lg-2 col-md-2 col-sm-2 col-xs-6 mb-3")
+            input(class="btn btn-success" type='submit', value='Добавить')
+      br
+      ul(class="list-group")
+      each val in result
+        li(class="list-group-item serviceList" id = val.id ) #{val.start}-#{val.end} #{val.name}, #{val.week}
+          i(class="caret fa fa-caret-down")
+        div(class="slide")
+          br
+          a(class="btn btn-dark" href='/semester/' + val.id role="button") Изменить
+          font()=" "
+          a(class="btn btn-danger" href='/delSemester/' + val.id role="button") Удалить
+          p
