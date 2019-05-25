@@ -518,35 +518,31 @@ router.get("/listStudents",isLoggedIn, function(req, res, next) {
     var studyGroups = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("SELECT students.*, students.id as idstudent,DATE_FORMAT(birthYear, \"%d-%m-%Y\") as year,studygroups.* FROM students,studygroups WHERE studygroups.id = id_group ORDER BY last_name", (err, rows) => {
+        db.query("SELECT students.id as idstudent, persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, DATE_FORMAT(persons.birthYear, \"%d-%m-%Y\") as year, studygroups.name " +
+            "FROM persons " +
+            "INNER JOIN students ON persons.id = students.id_person " +
+            "INNER JOIN studygroups ON students.id_group=studygroups.id " +
+            "ORDER BY persons.last_name", (err, rows) => {
             if (err) return next(err);
             rows.forEach(row => {
-                result.push({ id: row.idstudent, firstname: row.first_name, lastname: row.last_name, secondname: row.second_name, idgroup: row.id_group, birthyear: row.year, group: row.name });
+                result.push({ id: row.idstudent, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname, birthyear: row.year, group: row.name });
             });
-            db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
-                if (err) {
-                    return next(err);
-                }
-                rows.forEach(row => {
-                    studyGroups.push({ id: row.id, name: row.name });
-                });
-                var login,lastname,secondname,firstname,type_user,email = "";
-                if (req.user){
-                    login = req.user.login;
-                    lastname = req.user.last_name;
-                    firstname = req.user.first_name;
-                    type_user = req.user.user_type;
-                    email = req.user.email;
-                    secondname = req.user.second_name;
-                }
-                res.render("listStudents", {
-                    title: "Список студентов", res: result,studyGroups: studyGroups,login: login,
-                    lastname: lastname,
-                    firstname: firstname,
-                    secondname: secondname,
-                    type_user: type_user,
-                    email: email
-                });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("listStudents", {
+                title: "Список студентов", res: result,studyGroups: studyGroups,login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
             });
         });
         db.release();
@@ -559,18 +555,17 @@ router.get("/student/:id", isLoggedIn, function(req, res, next) {
         if (err) return next(err);
         var studyGroups = [];
         var result = [];
-        db.query("SELECT students.*,DATE_FORMAT(birthYear, \"%d-%m-%Y\") as year FROM students", (err, rows) => {
-            if (err) {
-                return next(err);
-            }
+        db.query("SELECT students.id,persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, DATE_FORMAT(persons.birthYear, \"%d-%m-%Y\") as year, studygroups.name " +
+            "FROM persons " +
+            "INNER JOIN students ON persons.id = students.id_person " +
+            "INNER JOIN studygroups ON students.id_group=studygroups.id " +
+            "WHERE students.id =?",req.params.id, (err, rows) => {
+            if (err) return next(err);
             rows.forEach(row => {
-                result.push({ id: row.id, firstname: row.first_name, lastname: row.last_name,secondname: row.second_name, birthyear: row.year  });
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname, birthyear: row.year  });
             });
-            console.log(req.params.id)
             db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
-                if (err) {
-                    return next(err);
-                }
+                if (err) return next(err);
                 rows.forEach(row => {
                     studyGroups.push({ id: row.id, name: row.name });
                 });
@@ -602,26 +597,10 @@ router.get("/student/:id", isLoggedIn, function(req, res, next) {
 router.post("/student/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("SELECT id FROM studyGroups WHERE name=?",[req.body.studyGroup], function (err,row) {
-            if (err) {
-                console.log(err);
-            }
-            var idGroup = row[0].id;
-            console.log(idGroup)
-            console.log(req.params.id)
-            if (idGroup != 0)
-            {
-                db.query(
-                    `UPDATE students SET last_name='${req.body.lastname}', first_name='${req.body.firstname
-                        }', second_name='${req.body.secondname}',birthyear='${req.body.birthyear2}',id_group='${idGroup}' WHERE id=?;`,
-                    req.params.id,(err, rows) => {
-                        if (err) {
-                            return next(err);
-                        }
-                        res.redirect("/listStudents");
-                    }
-                );
-            }
+        db.query("UPDATE persons,students SET persons.first_name=?,persons.second_name=?,persons.last_name=?,students.id_group=? \n" +
+            "WHERE persons.id=students.id_person AND students.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.body.studyGroup,req.params.id], function (err,row) {
+            if (err) return next(err);
+            res.redirect("/listStudents");
     });
         db.release();
         if (err) return next(err);
@@ -631,10 +610,18 @@ router.post("/student/:id", isLoggedIn, function(req, res, next) {
 router.get("/delStudent/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM subjects WHERE id=?", req.params.id, (err, rows) => {
+        var result=[];
+        db.query("SELECT students.id,persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, DATE_FORMAT(persons.birthYear, \"%d-%m-%Y\") as year, studygroups.name " +
+            "FROM persons " +
+            "INNER JOIN students ON persons.id = students.id_person " +
+            "INNER JOIN studygroups ON students.id_group=studygroups.id " +
+            "WHERE students.id =?",req.params.id, (err, rows) => {
             if (err) {
                 return next(err);
             }
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname, birthyear: row.year, group: row.name  });
+            });
             var login,lastname,secondname,firstname,type_user,email = "";
             if (req.user){
                 login = req.user.login;
@@ -644,9 +631,8 @@ router.get("/delStudent/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delSubject", {
-                title: "Удалить преподавателя",
-                val: rows[0],login: login,
+            res.render("delStudent", {
+                val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
                 secondname: secondname,
@@ -662,17 +648,409 @@ router.get("/delStudent/:id", isLoggedIn, function(req, res, next) {
 
 router.post("/delStudent/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
-        if (err) return next(err); // not connected!
-        db.query(`DELETE FROM subjects WHERE id=?;`, req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
+        if (err) return next(err);
+        db.query("DELETE FROM users WHERE id=(SELECT id_user FROM persons WHERE id=(SELECT id_person FROM students WHERE id=?));", req.params.id, (err, rows) => {
+            if (err) return next(err);
+        });
+        db.release();
+        if (err) return next(err);
+    });
+    res.redirect("/listStudents");
+});
+
+router.get("/listCurators",isLoggedIn, function(req, res, next) {
+    var result = [];
+    var studyGroups = [];
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
+        "FROM persons "+
+        "INNER JOIN curators ON persons.id = curators.id_person "+
+        "ORDER BY last_name", (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname});
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
             }
+            res.render("listCurators", {
+                res: result,login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/curator/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        var studyGroups = [];
+        var result = [];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
+            "FROM persons "+
+            "INNER JOIN curators ON persons.id = curators.id_person "+
+            "WHERE curators.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("curator", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/curator/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("UPDATE persons,curators SET persons.first_name=?,persons.second_name=?,persons.last_name=? " +
+            "WHERE persons.id=curators.id_person AND curators.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.params.id], function (err,row) {
+            if (err) return next(err);
+            res.redirect("/listCurators");
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/delCurator/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var result=[];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
+            "FROM persons "+
+            "INNER JOIN curators ON persons.id = curators.id_person "+
+            "WHERE curators.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("delCurator", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
         });
         db.release();
         if (err) return next(err);
         // Don't use the db here, it has been returned to the pool.
     });
-    res.redirect("/listStudents");
+});
+
+router.post("/delCurator/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("DELETE FROM curators WHERE id=?;", req.params.id, (err, rows) => {
+            if (err) return next(err);
+        });
+        db.release();
+        if (err) return next(err);
+    });
+    res.redirect("/listCurators");
+});
+
+router.get("/listParents",isLoggedIn, function(req, res, next) {
+    var result = [];
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "ORDER BY last_name", (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname});
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("listParents", {
+                res: result,login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/parent/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        var result = [];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "WHERE parents.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("parent", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/parent/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("UPDATE persons,parents SET persons.first_name=?,persons.second_name=?,persons.last_name=? " +
+            "WHERE persons.id=parents.id_person AND parents.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.params.id], function (err,row) {
+            if (err) return next(err);
+            res.redirect("/listParents");
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/delParent/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var result=[];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "WHERE parents.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("delParent", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+        // Don't use the db here, it has been returned to the pool.
+    });
+});
+
+router.post("/delParent/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("DELETE FROM parents WHERE id=?;", req.params.id, (err, rows) => {
+            if (err) return next(err);
+        });
+        db.release();
+        if (err) return next(err);
+    });
+    res.redirect("/listParents");
+});
+
+router.get("/listSemesters",isLoggedIn, function(req, res, next) {
+    var result = [];
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "ORDER BY last_name", (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname});
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("listSemesters", {
+                res: result,login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/semester/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        var result = [];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "WHERE parents.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("semester", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/semester/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("UPDATE persons,parents SET persons.first_name=?,persons.second_name=?,persons.last_name=? " +
+            "WHERE persons.id=parents.id_person AND parents.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.params.id], function (err,row) {
+            if (err) return next(err);
+            res.redirect("/listSemesters");
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/delSemester/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var result=[];
+        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, parents.id "+
+            "FROM persons "+
+            "INNER JOIN parents ON persons.id = parents.id_person "+
+            "WHERE parents.id=?",req.params.id, (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("delSemester", {
+                val: result[0],login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        });
+        db.release();
+        if (err) return next(err);
+        // Don't use the db here, it has been returned to the pool.
+    });
+});
+
+router.post("/delSemester/:id", isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("DELETE FROM parents WHERE id=?;", req.params.id, (err, rows) => {
+            if (err) return next(err);
+        });
+        db.release();
+        if (err) return next(err);
+    });
+    res.redirect("/listSemesters");
 });
 
 router.post("/regStudents", function(req, res, next) {//для регистрации

@@ -4,13 +4,13 @@ block variables
 block content
     br
     .container
-        h1.mt-5 Удаление преподавателя
+        h1.mt-5 Удаление куратора
         br
-        form(action='/delTeacher/'+val.id, method='post')
+        form(action='/delCurator/'+val.id, method='post')
             div(class="form-row")
                 div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6")
-                    p() #{val.id}. #{val.last_name} #{val.first_name} #{val.second_name}, #{val.approval_code}
+                    p() #{val.lastname} #{val.firstname} #{val.secondname}
                 div(class="col-lg-12 col-md-12 col-sm-12 col-xs-6")
                     input(class="btn btn-danger" type='submit' value='Удалить')
                     font()=" "
-                    a(class="btn btn-secondary" href='/listTeachers' role="button") Отмена
+                    a(class="btn btn-secondary" href='/listCurators' role="button") Отмена

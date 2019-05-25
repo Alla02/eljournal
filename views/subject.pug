@@ -3,13 +3,14 @@ block variables
   include variables
 block content
     br
-    h2="Изменение предмета"
-    br
-    form(action='/subject/'+val.id, method='post')
-      div(class="form-row")
-        div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
-          input(name='name' class="form-control" type="text" value=val.name)
-        div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6")
-          input(type='submit',class="btn btn-primary", value='Изменить')
-          font()=" "
-          a(class="btn btn-secondary" href='/listSubjects' role="button") Отмена
+    .container
+        h2="Изменение предмета"
+        br
+        form(action='/subject/'+val.id, method='post')
+          div(class="form-row")
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
+              input(name='name' class="form-control" type="text" value=val.name)
+            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6")
+              input(type='submit',class="btn btn-primary", value='Изменить')
+              font()=" "
+              a(class="btn btn-secondary" href='/listSubjects' role="button") Отмена

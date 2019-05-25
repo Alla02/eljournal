@@ -5,23 +5,6 @@ block content
     .container
         h1.mt-5 Список студентов
         br
-        form(action='/addStudent', method='post')
-            div(class="form-row")
-                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
-                    input(name='lastname', class="form-control" type="text" placeholder='Фамилия' required)
-                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
-                    input(name='firstname', class="form-control" type="text" placeholder='Имя' required)
-                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
-                    input(name='secondname', class="form-control" type="text" placeholder='Отчество')
-                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
-                    input(name='birthyear', class="form-control" type="text" placeholder='Дата рождения' id="birthyear")
-                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
-                    select(type='text', name='studyGroup' class='form-control')
-                        each value in studyGroups
-                            option #{value.name}
-                div(class="col")
-                    input(class="btn btn-success" type='submit', value='Добавить')
-        br
         ul(class="list-group")
         each val in res
             li(class="list-group-item serviceList" id = val.id ) #{val.lastname} #{val.firstname} #{val.secondname} #{val.idgroup} #{val.birthyear} #{val.group}

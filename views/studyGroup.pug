@@ -3,13 +3,14 @@ block variables
     include variables
 block content
     br
-    h2="Изменение группы"
-    br
-    form(action='/studyGroup/'+val.id, method='post' id="formGroupUpdate")
-        div(class="form-row")
-            div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
-                input(name='name' class="form-control" type="text" value=val.name)
-            div(class="col")
-                input(class="btn btn-primary" id="updateGroup" type='submit' value='Изменить')
-                font()=" "
-                a(class="btn btn-secondary" href='/listGroup' role="button") Отмена
+    .container
+        h2="Изменение группы"
+        br
+        form(action='/studyGroup/'+val.id, method='post' id="formGroupUpdate")
+            div(class="form-row")
+                div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
+                    input(name='name' class="form-control" type="text" value=val.name)
+                div(class="col")
+                    input(class="btn btn-primary" id="updateGroup" type='submit' value='Изменить')
+                    font()=" "
+                    a(class="btn btn-secondary" href='/listGroup' role="button") Отмена
