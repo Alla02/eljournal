@@ -1,0 +1,53 @@
+extends layout
+block variables
+    include variables
+block append scripts
+    script(src="/javascripts/scriptCurator.js")
+    script(src="/javascripts/jqcontextmenu.js")
+block content
+    main.my-form
+        .cotainer
+            .row.justify-content-center
+                .col-md-10
+                    .card
+                        #exampleModalCenter.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalCenterTitle', aria-hidden='true')
+                            .modal-dialog.modal-dialog-centered(role='document')
+                                .modal-content
+                                    .modal-header
+                                        h5#exampleModalLongTitle.modal-title Добавить файл или комментарий
+                                        button.close(type='button', data-dismiss='modal', aria-label='Close')
+                                            span(aria-hidden='true') ×
+                                    .modal-body
+                                        textarea(name='comment', cols='40', rows='3')
+                                        .custom-file
+                                            input#inputGroupFile01.custom-file-input(type='file')
+                                            label.custom-file-label(for='inputGroupFile01') Выбрать файл
+                                    .modal-footer
+                                        button.btn.btn-secondary(type='button', data-dismiss='modal') Close
+                                        button.btn.btn-primary(type='button') Сохранить
+                        .card-header Посещаемость группы #{groupName}
+                        .card-body
+                            div(class="tab-pane active" id="tab2")
+                                input(type='text', name='selectDay' class='form-control', placeholder='Выбрать день' id="selectDay")
+                                table#table1.table.table-bordered.table-responsive
+                                    tbody
+                                        tr
+                                            th
+                                                th#weekd День
+                                    tr#subjects
+                                        tbody
+                                            each val in listStudents
+                                                tr(id="st"+val.studentId class="check")
+                                                    td(class="student stickyLeft") #{val.lastname} #{val.firstname} #{val.secondname}
+                            .col-md-6.offset-md-4
+                                label.col-md-4.col-form-label.text-md-right Выбрать занятие
+                                select(id='selectPair' class='form-control')
+                                p
+                            .col-md-6.offset-md-4
+                                button.btn.btn-primary(type='submit' onclick='saveResults()')
+                                    | Сохранить
+                            #message
+                            if message
+                            h2.text-center.error-message #{message}
+
+

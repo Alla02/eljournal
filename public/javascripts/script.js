@@ -1,12 +1,12 @@
 $(function(){
 	moment.locale('ru');
-        $('#birthyear').daterangepicker({
-            singleDatePicker: true,
-            showDropdowns: true,
-            locale: {
-                format: 'YYYY-MM-DD'
-            },
-        });
+    $('#birthyear').daterangepicker({
+        singleDatePicker: true,
+        showDropdowns: true,
+        locale: {
+            format: 'YYYY-MM-DD'
+        },
+    });
     $('#birthyear2').daterangepicker({
         singleDatePicker: true,
         showDropdowns: true,

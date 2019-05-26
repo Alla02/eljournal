@@ -80,6 +80,10 @@ a {
     border-radius: 20px;
 }
 
+.comment{
+    visibility: hidden
+}
+
 .table-responsive {
     max-height:400px;
 }

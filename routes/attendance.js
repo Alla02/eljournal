@@ -427,4 +427,57 @@ router.post("/getTeachersName", function(req, res, next) {
     });
 });
 
+router.get('/attCurator/:id',isLoggedIn, function(req, res, next) {
+  var listStudents = [];
+  pool.getConnection(function(err, db) {
+    if (err) return next(err);
+    var login,lastname,secondname,firstname,type_user,email = "";
+    if (req.user){
+      login = req.user.login;
+      lastname = req.user.last_name;
+      firstname = req.user.first_name;
+      type_user = req.user.user_type;
+      email = req.user.email;
+      secondname = req.user.second_name;
+    }
+    //проверка принадлежит ли куратор к этой группе
+    db.query("SELECT id FROM groupcurator WHERE id_curator=(SELECT id FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))) AND id_group=?;",[login,req.params.id], (err, rows) => {
+      if (err) return next(err);
+      if (rows.length != 0) {
+        db.query("SELECT name FROM studyGroups WHERE id=?;", req.params.id, (err, rows) => {
+          if (err) return next(err);
+          if (rows.length != 0) {
+            var groupName = rows[0].name;
+            db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, persons.BirthYear as birthyear, students.id as stid FROM persons INNER JOIN students ON students.id_person=persons.id WHERE students.id_group=?;", req.params.id, (err, rows) => {
+              if (err) return next(err);
+              rows.forEach(row => {
+                listStudents.push({
+                  studentId: row.stid,
+                  firstname: row.firstname,
+                  lastname: row.lastname,
+                  secondname: row.secondname,
+                  birthyear: row.birthyear
+                });
+              });
+              res.render("attCurator", {
+                groupName: groupName,
+                listStudents: listStudents,
+                login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+              });
+            });
+          } else res.redirect("/");
+          db.release();
+          if (err) return next(err);
+        });
+      }
+      else res.redirect("/");
+    });
+  });
+});
+
 module.exports = router;

@@ -1,3 +1,4 @@
+
 $(document).ready(function () {
     $(function(){
         moment.locale('ru');
@@ -17,7 +18,6 @@ $(document).ready(function () {
         $('#selectDay').val('');
         $('#selectDay').attr("placeholder","Выбрать день");
     });
-
 
     function attendance(day, seldate) {
         var times =["8:30","10:10", "11:50", "13:50", "15:30", "17:10", "18:50"];
@@ -54,20 +54,9 @@ $(document).ready(function () {
                     var shortSubject = (data[i].subjectName).replace('Дисциплина по выбору','ДПВ'); //сокращение дисциплины по выбору.
                     if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice chkParent stickyHead">'+shortSubject+'</td>');
                     else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection chkParent stickyHead">'+shortSubject+'</td>');
-                    //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
-                    //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
-                    $('.check').append('<td class="attend"></td>');
-                    //$('.check2').append('<td class="chkParent"></td>');
+                    $('.check').append('<td class="attend"><span class="comment">The element with the hidden visibility</span></td>');
                     $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + " ("+ times[data[i].numPair-1]+")"+'</option>');
                 }
-                /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
-                $('.chkParent').on("change", function() {
-                    var $cb = $(this),
-                        $th = $cb.closest("td"), // get parent th
-                        col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
-                    //alert(col);
-                    $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
-                });*/
 
                 $.ajax({
                     type: "POST",
@@ -77,14 +66,7 @@ $(document).ready(function () {
                 }).done(function (data2) {
                     console.log("data2 "+data2);
                     for (var i in data2) {
-                        //console.log("d "+data2[i].idSubjTeacher +" " +data2[i].idStudent);
                         var column = $("#" + data2[i].idSubjTeacher).index();
-                       // console.log(column);
-                       // var column = $(cell).index();
-                        //var idSubj = $('#subjects').find('td').eq(column).attr("id");
-                        //var idStud = $(cell).parent().attr("id");
-                        //$("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
-                        //console.log("att "+data2[i].attendance);
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
                             if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");
@@ -109,19 +91,78 @@ $(document).ready(function () {
         });
     });
 
+    $(document).on("contextmenu", "td.attend" , function() {
+        var $cell = $(this);
+        if ($cell.hasClass("selected")) {
+            $cell.removeClass("absent late present").addClass("excused");
+            $('#exampleModalCenter').modal('show');
+        }
+    });
+
+
+    //обработка события при правом щелчке по ячейке с парой (только удаляем пару)
+    /*
+    $(function () {
+        function getPosition(e) {
+            var x = y = 0;
+            if (!e) {
+                var e = window.event;
+            }
+            if (e.pageX || e.pageY) {
+                x = e.pageX;
+                y = e.pageY;
+            } else if (e.clientX || e.clientY) {
+                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+            }
+            return {x: x, y: y}
+        }
+        $("body").on("contextmenu", "table td .subject-card", function (e) {
+            var coord = getPosition(e);
+            var val_ = $(this).find(".dateTemporary").attr("value");
+            if (val_!=undefined){
+                $('#contextMenu1').css({
+                    display: "block",
+                    left: coord.x,
+                    top: coord.y
+                });
+                $("#contextMenu").css({
+                    display: "none"
+                });
+            }
+            else {
+                $('#contextMenu').css({
+                    display: "block",
+                    left: coord.x,
+                    top: coord.y
+                });
+                $("#contextMenu1").css({
+                    display: "none"
+                });
+            }
+            groupId_ = $("#inputGroupSelect option:selected").val();
+            timeId_ =  Number.parseInt($(this).find(".timeId").attr("value"));
+            weekdayId_ = Number.parseInt($(this).find(".weekdayId").attr("value"));
+            subjectId_ = Number.parseInt($(this).find(".nameSubject").attr("value"));
+            teacherId_ = Number.parseInt($(this).find(".teacher").attr("value"));
+            classId_ = Number.parseInt($(this).find(".classroom").attr("value"));
+            pairId_ = Number.parseInt($(this).find(".pairId").attr("value"));
+            return false;
+        });
+    });*/
+
     $(document).on("click", "td.attend" , function() {
         var $cell = $(this);
         if ($cell.hasClass("selected")) {
-            if (!$cell.hasClass("present") && !$cell.hasClass("absent") && !$cell.hasClass("late")) $cell.addClass("present");//если ячейка без отметки, то добавляем класс present
+            if (!$cell.hasClass("present") && !$cell.hasClass("absent") && !$cell.hasClass("late")&& !$cell.hasClass("excused")) $cell.addClass("present");//если ячейка без отметки, то добавляем класс present
             else {
-                if ($cell.hasClass("present")) {
-                    $cell.removeClass("present").addClass("absent");
-                } else {
-                    if ($cell.hasClass("absent")) {
-                        $cell.removeClass("absent").addClass("late");
-                    } else {
-                        if ($cell.hasClass("late")) {
-                            $cell.removeClass("late").addClass("present");
+                if ($cell.hasClass("excused")) $cell.removeClass("excused").addClass("present");
+                else {
+                    if ($cell.hasClass("present")) $cell.removeClass("present").addClass("absent");
+                    else {
+                        if ($cell.hasClass("absent")) $cell.removeClass("absent").addClass("late");
+                        else {
+                            if ($cell.hasClass("late")) $cell.removeClass("late").addClass("present");
                         }
                     }
                 }
@@ -136,17 +177,16 @@ $(document).ready(function () {
         var $cells = $("tbody td.attend:nth-child(" + col + ")");
         //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
         if ($cells.hasClass("selected")) {
-            if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late"))
+            if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late") && !$cell.hasClass("excused"))
                 $cells.addClass("present");
             else {
-                if ($cells.hasClass("present")) {
-                    $cells.removeClass("present").addClass("absent");
-                } else {
-                    if ($cells.hasClass("absent")) {
-                        $cells.removeClass("absent").addClass("late");
-                    } else {
-                        if ($cells.hasClass("late")) {
-                            $cells.removeClass("late").addClass("present");
+                if ($cells.hasClass("excused")) $cells.removeClass("excused").addClass("present");
+                else {
+                    if ($cells.hasClass("present")) $cells.removeClass("present").addClass("absent");
+                    else {
+                        if ($cells.hasClass("absent")) $cells.removeClass("absent").addClass("late");
+                        else {
+                            if ($cells.hasClass("late")) $cells.removeClass("late").addClass("present");
                         }
                     }
                 }
@@ -164,88 +204,67 @@ $(document).ready(function () {
         console.log(col);
         $("tbody td.attend:nth-child(" + col + ")").addClass("selected");
         $("h2").text("");
-        $.ajax({
-            type: "POST",
-            url: "/getTeachersName",
-            data: jQuery.param({idSubjTeacher: idSubjTeacher}),
-            dataType: "json"
-        }).done(function (data) {
-            $('#teachersName').text(data[0].lastname + " " + data[0].firstname.substring(1,0) + ". " + data[0].secondname.substring(1,0)+".");
-            //$("#teachersName").append(data[0].lastname + " " + data[0].lastname + " " + data[0].secondname);
-        });
     });
 });
 
 function saveResults() {
     var idSubjTeacher = $("#selectPair option:selected").val();
-    var code = $("#code").val();
     console.log(idSubjTeacher);
-    console.log(code);
+    var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
+   // console.log(col);
+    var tab = document.getElementsByTagName("table")[0];
+    //var cells = tab.getElementsByClassName("attend");
+    var cells = $("tbody td.attend:nth-child(" + col + ")");
+    //var checkboxes = tab.getElementsByClassName("check1");//
+    var day = document.getElementById("selectDay").value;
+    var res=[];
+    for(var i = 0; i < cells.length; i++){
+        // Cell Object
+        var cell = cells[i];
+        var column = $(cell).index();
+        var idSubj = $('#subjects').find('td').eq(column).attr("id");
+        var idStud = $(cell).parent().attr("id");
+        idStud = idStud.substring(idStud.indexOf("t") + 1);
+        var attend;
+        if ($(cell).hasClass("absent")){
+            attend = 0;
+        }
+        else {
+            if ($(cell).hasClass("present")){
+                attend = 1;
+            }
+            else {
+                if ($(cell).hasClass("late")){
+                    attend = 2;
+                }
+                else{
+                    if ($(cell).hasClass("excused")) attend = 3;
+                }
+            }
+        }
+        /*
+        if ($(checkboxes[i]).prop('checked')) {
+            attend = 1;
+        }
+        else attend =0;*/
+
+        res.push({
+            "idStudent" : idStud,
+            "idSubject"  : idSubj,
+            "date"       : day,
+            "attendance" : attend
+        });
+    }
+    console.log(res);
 
     $.ajax({
         type: "POST",
-        url: "/validateCode",
-        data: jQuery.param({idSubjTeacher: idSubjTeacher, code: code }),
+        url: "/saveAttendance",
+        contentType: 'application/json',
+        data: JSON.stringify(res)
+        //dataType: "json"
     }).done(function (data) {
-        console.log("result from validat "+data.result);
-        if (!data.result) { //УБРАТЬ !
-            var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
-           // console.log(col);
-            var tab = document.getElementsByTagName("table")[0];
-            //var cells = tab.getElementsByClassName("attend");
-            var cells = $("tbody td.attend:nth-child(" + col + ")");
-            //var checkboxes = tab.getElementsByClassName("check1");//
-            var day = document.getElementById("selectDay").value;
-            var res=[];
-            for(var i = 0; i < cells.length; i++){
-                // Cell Object
-                var cell = cells[i];
-                var column = $(cell).index();
-                var idSubj = $('#subjects').find('td').eq(column).attr("id");
-                var idStud = $(cell).parent().attr("id");
-                idStud = idStud.substring(idStud.indexOf("t") + 1);
-                var attend;
-                if ($(cell).hasClass("absent")){
-                    attend = 0;
-                }
-                else {
-                    if ($(cell).hasClass("present")){
-                        attend = 1;
-                    }
-                    else {
-                        if ($(cell).hasClass("late")){
-                            attend = 2;
-                        }
-                    }
-                }
-                /*
-                if ($(checkboxes[i]).prop('checked')) {
-                    attend = 1;
-                }
-                else attend =0;*/
-
-                res.push({
-                    "idStudent" : idStud,
-                    "idSubject"  : idSubj,
-                    "date"       : day,
-                    "attendance" : attend
-                });
-            }
-            console.log(res);
-
-            $.ajax({
-                type: "POST",
-                url: "/saveAttendance",
-                contentType: 'application/json',
-                data: JSON.stringify(res)
-                //dataType: "json"
-            }).done(function (data) {
-                $("h2").text("Посещаемость сохранена");
-            });
-        }
-        else {
-            $("h2").text("Код не совпадает");
-        }
+        $("h2").text("Посещаемость сохранена");
     });
 }
 
