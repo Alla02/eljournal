@@ -79,7 +79,8 @@ $(document).ready(function () {
     };
 
     $(function () {
-        $('#selectDay').on('change', function () {
+        $('#selectDay').on('change', function (e) {
+            e.preventDefault();
             //alert($(this).val());
             $('#teachersName').text("");
             if( $(this).val()!= undefined){

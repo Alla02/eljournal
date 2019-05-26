@@ -18,7 +18,7 @@ block content
                                         button.close(type='button', data-dismiss='modal', aria-label='Close')
                                             span(aria-hidden='true') ×
                                     .modal-body
-                                        textarea(name='comment', cols='40', rows='3')
+                                        textarea(id='comment' name='comment', cols='56', rows='3' maxlength='150')
                                         .custom-file
                                             input#inputGroupFile01.custom-file-input(type='file')
                                             label.custom-file-label(for='inputGroupFile01') Выбрать файл
@@ -27,7 +27,7 @@ block content
                                         button.btn.btn-primary(type='button') Сохранить
                         .card-header Посещаемость группы #{groupName}
                         .card-body
-                            div(class="tab-pane active" id="tab2")
+                            div(class="tab-pane active" id="tab2" oncontextmenu="return false;")
                                 input(type='text', name='selectDay' class='form-control', placeholder='Выбрать день' id="selectDay")
                                 table#table1.table.table-bordered.table-responsive
                                     tbody
