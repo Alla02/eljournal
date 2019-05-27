@@ -109,6 +109,34 @@ function getReport() {
         });
     });
 
+    if (idStudent==="0"){
+    $.ajax({
+        type: "POST",
+        url: "/getReportTable",
+        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId}),
+        dataType: "json"
+    }).done(function (res) {
+        console.log(res);
+        $('#addRows').children("tr").remove();
+        for (var i in res) {
+            $('#addRows').append('<tr><td>' + res[i].lastname+' '+ (res[i].firstname).substring(0, 1)+'. '+ (res[i].secondname).substring(0, 1) + '.</td><td>'+res[i].absent+'</td></tr>');
+        }
+    });
+    }
+    else {
+        $.ajax({
+            type: "POST",
+            url: "/getReportTable2",
+            data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId}),
+            dataType: "json"
+        }).done(function (res) {
+            console.log(res);
+            $('#addRows').children("tr").remove();
+            for (var i in res) {
+                $('#addRows').append('<tr><td>' + res[i].lastname+' '+ (res[i].firstname).substring(0, 1)+'. '+ (res[i].secondname).substring(0, 1) + '.</td><td>'+res[i].absent+'</td></tr>');
+            }
+        });
+    }
 
 }
 

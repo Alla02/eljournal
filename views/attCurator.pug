@@ -3,7 +3,6 @@ block variables
     include variables
 block append scripts
     script(src="/javascripts/scriptCurator.js")
-    script(src="/javascripts/jqcontextmenu.js")
 block content
     main.my-form
         .cotainer
@@ -18,13 +17,13 @@ block content
                                         button.close(type='button', data-dismiss='modal', aria-label='Close')
                                             span(aria-hidden='true') ×
                                     .modal-body
-                                        textarea(id='comment' name='comment', cols='56', rows='3' maxlength='150')
+                                        textarea(id='commentField' name='commentField', cols='56', rows='3' maxlength='150')
                                         .custom-file
                                             input#inputGroupFile01.custom-file-input(type='file')
                                             label.custom-file-label(for='inputGroupFile01') Выбрать файл
                                     .modal-footer
                                         button.btn.btn-secondary(type='button', data-dismiss='modal') Close
-                                        button.btn.btn-primary(type='button') Сохранить
+                                        button.btn.btn-primary(type='button' id='btnSubmitModal') Добавить
                         .card-header Посещаемость группы #{groupName}
                         .card-body
                             div(class="tab-pane active" id="tab2" oncontextmenu="return false;")

@@ -307,7 +307,8 @@ router.post("/fillAttendance", function(req, res, next) {
                 id: row.id,
                 idStudent: row.id_student,
                 attendance: row.attendance,
-                idSubjTeacher: row.id_subjteacher
+                idSubjTeacher: row.id_subjteacher,
+                comment: row.comment
               });
             });
             console.log(result);

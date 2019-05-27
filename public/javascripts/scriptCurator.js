@@ -54,7 +54,7 @@ $(document).ready(function () {
                     var shortSubject = (data[i].subjectName).replace('Дисциплина по выбору','ДПВ'); //сокращение дисциплины по выбору.
                     if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice chkParent stickyHead">'+shortSubject+'</td>');
                     else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection chkParent stickyHead">'+shortSubject+'</td>');
-                    $('.check').append('<td class="attend"><span class="comment">The element with the hidden visibility</span></td>');
+                    $('.check').append('<td class="attend"><span class="comment"></span></td>');
                     $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + " ("+ times[data[i].numPair-1]+")"+'</option>');
                 }
 
@@ -64,7 +64,6 @@ $(document).ready(function () {
                     data: jQuery.param({id_group: groupId_,selecteddate: seldate, day:day}),
                     dataType: "json"
                 }).done(function (data2) {
-                    console.log("data2 "+data2);
                     for (var i in data2) {
                         var column = $("#" + data2[i].idSubjTeacher).index();
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
@@ -79,8 +78,7 @@ $(document).ready(function () {
     };
 
     $(function () {
-        $('#selectDay').on('change', function (e) {
-            e.preventDefault();
+        $('#selectDay').on('change', function () {
             //alert($(this).val());
             $('#teachersName').text("");
             if( $(this).val()!= undefined){
@@ -92,65 +90,29 @@ $(document).ready(function () {
         });
     });
 
+
     $(document).on("contextmenu", "td.attend" , function() {
-        var $cell = $(this);
-        if ($cell.hasClass("selected")) {
-            $cell.removeClass("absent late present").addClass("excused");
-            $('#exampleModalCenter').modal('show');
+        var cell = $(this);
+        if (cell.hasClass("selected")) {
+            cell.removeClass("absent late present").addClass("excused");
+            //$('#exampleModalCenter').modal('show');
+            $('#exampleModalCenter').modal('toggle');
+            var column = cell.index();
+            var idSubj = $('#subjects').find('td').eq(column).attr("id");
+            var idStud = cell.parent().attr("id");
+            console.log(column, idSubj,idStud);
+            $( "#btnSubmitModal" ).on("click", function() {
+                var field1value = $("#commentField").val();
+                console.log("field1value "+field1value);
+                cell.find('.comment').text(field1value);
+                //$("#commentField").val('');
+                //$('#exampleModalCenter').modal('hide');
+                $('#exampleModalCenter').modal('toggle');
+                event.stopPropagation();
+            });
         }
     });
 
-
-    //обработка события при правом щелчке по ячейке с парой (только удаляем пару)
-    /*
-    $(function () {
-        function getPosition(e) {
-            var x = y = 0;
-            if (!e) {
-                var e = window.event;
-            }
-            if (e.pageX || e.pageY) {
-                x = e.pageX;
-                y = e.pageY;
-            } else if (e.clientX || e.clientY) {
-                x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-                y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-            }
-            return {x: x, y: y}
-        }
-        $("body").on("contextmenu", "table td .subject-card", function (e) {
-            var coord = getPosition(e);
-            var val_ = $(this).find(".dateTemporary").attr("value");
-            if (val_!=undefined){
-                $('#contextMenu1').css({
-                    display: "block",
-                    left: coord.x,
-                    top: coord.y
-                });
-                $("#contextMenu").css({
-                    display: "none"
-                });
-            }
-            else {
-                $('#contextMenu').css({
-                    display: "block",
-                    left: coord.x,
-                    top: coord.y
-                });
-                $("#contextMenu1").css({
-                    display: "none"
-                });
-            }
-            groupId_ = $("#inputGroupSelect option:selected").val();
-            timeId_ =  Number.parseInt($(this).find(".timeId").attr("value"));
-            weekdayId_ = Number.parseInt($(this).find(".weekdayId").attr("value"));
-            subjectId_ = Number.parseInt($(this).find(".nameSubject").attr("value"));
-            teacherId_ = Number.parseInt($(this).find(".teacher").attr("value"));
-            classId_ = Number.parseInt($(this).find(".classroom").attr("value"));
-            pairId_ = Number.parseInt($(this).find(".pairId").attr("value"));
-            return false;
-        });
-    });*/
 
     $(document).on("click", "td.attend" , function() {
         var $cell = $(this);
