@@ -74,12 +74,13 @@ function getReport() {
         dataType: "json"
     }).done(function (res) {
         console.log(typeof res);
-        var present=0, absent=0,late=0;
+        var present=0, absent=0,late=0,excused=0;
         //id: row.id, attendance: row.attendance, dateAtt: row.date_attendance
         for (var i in res) {
             if (res[i].attendance===1) present++;
             if (res[i].attendance===0) absent++;
             if (res[i].attendance===2) late++;
+            if (res[i].attendance===2) excused++;
         }
         console.log(present, absent,late);
         $('#results-chart').remove();
@@ -89,15 +90,17 @@ function getReport() {
             labels: [
                 "Присутствовал",
                 "Отсутствовал",
-                "Опоздал"
+                "Опоздал",
+                "Уважительная причина"
             ],
             datasets: [
                 {
-                    data: [present, absent, late],
+                    data: [present, absent, late,excused],
                     backgroundColor: [
                         "#63FF84",
                         "#FF6384",
-                        "#6384FF"
+                        "#6384FF",
+                        "#9D95F6"
                     ]
                 }]
         };
@@ -131,9 +134,14 @@ function getReport() {
             dataType: "json"
         }).done(function (res) {
             console.log(res);
-            $('#addRows').children("tr").remove();
+            $('#addRows2').children("tr").remove();
             for (var i in res) {
-                $('#addRows').append('<tr><td>' + res[i].lastname+' '+ (res[i].firstname).substring(0, 1)+'. '+ (res[i].secondname).substring(0, 1) + '.</td><td>'+res[i].absent+'</td></tr>');
+                var atten;
+                if (res[i].attendance===1) atten="Присутствовал";
+                if (res[i].attendance===0) atten="Отсутствовал";
+                if (res[i].attendance===2) atten="Опоздал";
+                if (res[i].attendance===2) atten="Уважительная причина";
+                $('#addRows2').append('<tr><td>' + res[i].dateAtt+'</td><td>'+atten+'</td><td>'+res[i].comment+'</td></tr>');
             }
         });
     }

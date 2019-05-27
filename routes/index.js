@@ -615,33 +615,7 @@ router.post("/getReportTable", function(req, ress, next) {
                     ress.send(JSON.stringify(result2));
                 });
             }
-            else {
-                if (req.body.idStudent != "0" && req.body.idSubject === "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
-                    db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
-                        if (err) return next(err);
-                        console.log(rows);
-                        console.log("3");
-                        rows.forEach(row => {
-                            result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
-                        });
-                        ress.send(JSON.stringify(result));
-                    });
-                }
-                else {
-                    if (req.body.idStudent != "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
-                        db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
-                            if (err) return next(err);
-                            console.log(rows);
-                            console.log("4");
-                            rows.forEach(row => {
-                                result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
-                            });
-                            ress.send(JSON.stringify(result));
-                        });
-                    }
-                    else ress.send(JSON.stringify(result));
-                }
-            }
+            else ress.send(JSON.stringify(result));
         }
         db.release();
         if (err) return next(err);
@@ -652,114 +626,31 @@ router.post("/getReportTable2", function(req, ress, next) {
     var result=[];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        function getAttCount(id,beginDate,endDate) {
-            return new Promise(function(res) {
-                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE id_student=? AND date_attendance BETWEEN ? AND ?;",[id,beginDate,endDate], (err, rows) => {
-                    if (err) console.log(err);
-                    res(rows[0].res);
-                })
-            })
-        }
-
-        function getAttCount2(id,idSubject,beginDate,endDate) {
-            return new Promise(function(res) {
-                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE id_student=? AND id_subjteacher IN (SELECT id FROM subjteacher WHERE id_subject=?) AND date_attendance BETWEEN ? AND ?;",[id,idSubject,beginDate,endDate], (err, rows) => {
-                    if (err) console.log(err);
-                    res(rows[0].res);
-                })
-            })
-        }
-
-        if (req.body.idSubject === "0" && req.body.idStudent === "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
-            db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId \n" +
-                "FROM students \n" +
-                "INNER JOIN persons ON students.id_person=persons.id\n" +
-                "WHERE students.id_group=?;",[req.body.idGroup], async (err, rows) => {
-                if (err) return next(err);
-                console.log("1");
-                console.log(rows);
-                rows.forEach(row => {
-                    result.push({
-                        stId: row.stId,
-                        firstname: row.firstname,
-                        lastname: row.lastname,
-                        secondname: row.secondname
-                    });
-                });
-                console.log("result " + result);
-                var result2 = [];
-                for (var i = 0; i < result.length; i++) {
-                    var res = await getAttCount(result[i].stId,req.body.beginDate, req.body.endDate);
-                    result2.push({
-                        absent: res,
-                        firstname: result[i].firstname,
-                        lastname: result[i].lastname,
-                        secondname: result[i].secondname
-                    });
-                }
-                ress.send(JSON.stringify(result2));
-                //res.send(JSON.stringify(result));
-            });
-        }
-        else {
-            if (req.body.idStudent === "0" && req.body.idSubject != "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
-                db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId \n" +
-                    "FROM students \n" +
-                    "INNER JOIN persons ON students.id_person=persons.id\n" +
-                    "WHERE students.id_group=?;",[req.body.idGroup], async (err, rows) => {
+            if (req.body.idStudent != "0" && req.body.idSubject === "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
+                db.query("SELECT id,attendance,DATE_FORMAT(date_attendance, \"%d-%m-%Y\") as date, comment FROM studentattendance WHERE id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
                     if (err) return next(err);
-                    //console.log(rows);
-                    console.log("2");
+                    console.log(rows);
+                    console.log("3");
                     rows.forEach(row => {
-                        result.push({
-                            stId: row.stId,
-                            firstname: row.firstname,
-                            lastname: row.lastname,
-                            secondname: row.secondname
-                        });
+                        result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
                     });
-                    console.log("result " + result);
-                    var result2 = [];
-                    for (var i = 0; i < result.length; i++) {
-                        var res = await getAttCount2(result[i].stId,req.body.idSubject, req.body.beginDate, req.body.endDate);
-                        result2.push({
-                            absent: res,
-                            firstname: result[i].firstname,
-                            lastname: result[i].lastname,
-                            secondname: result[i].secondname
-                        });
-                    }
-                    ress.send(JSON.stringify(result2));
+                    ress.send(JSON.stringify(result));
                 });
             }
             else {
-                if (req.body.idStudent != "0" && req.body.idSubject === "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
-                    db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
+                if (req.body.idStudent != "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
+                    db.query("SELECT id,attendance,DATE_FORMAT(date_attendance, \"%d-%m-%Y\") as date, comment FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
                         if (err) return next(err);
-                        console.log(rows);
-                        console.log("3");
+                        //console.log(rows);
+                        console.log("4");
                         rows.forEach(row => {
-                            result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
+                            result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
                         });
                         ress.send(JSON.stringify(result));
                     });
                 }
-                else {
-                    if (req.body.idStudent != "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
-                        db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
-                            if (err) return next(err);
-                            console.log(rows);
-                            console.log("4");
-                            rows.forEach(row => {
-                                result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date_attendance});
-                            });
-                            ress.send(JSON.stringify(result));
-                        });
-                    }
-                    else ress.send(JSON.stringify(result));
-                }
+                else ress.send(JSON.stringify(result));
             }
-        }
         db.release();
         if (err) return next(err);
     });
