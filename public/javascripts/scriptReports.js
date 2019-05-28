@@ -80,7 +80,7 @@ function getReport() {
             if (res[i].attendance===1) present++;
             if (res[i].attendance===0) absent++;
             if (res[i].attendance===2) late++;
-            if (res[i].attendance===2) excused++;
+            if (res[i].attendance===3) excused++;
         }
         console.log(present, absent,late);
         $('#results-chart').remove();
@@ -121,9 +121,23 @@ function getReport() {
     }).done(function (res) {
         console.log(res);
         $('#addRows').children("tr").remove();
+        $('#addRows2').children("tr").remove();
+        document.getElementById("firstTable").style.display='block';
+        document.getElementById("secondTable").style.display='none';
+        /*
         for (var i in res) {
             $('#addRows').append('<tr><td>' + res[i].lastname+' '+ (res[i].firstname).substring(0, 1)+'. '+ (res[i].secondname).substring(0, 1) + '.</td><td>'+res[i].absent+'</td></tr>');
-        }
+        }*/
+        $('#tableReports').DataTable( {
+            destroy: true,
+            data: res,
+            columns: [
+                { data: 'lastname' },
+                { data: 'firstname' },
+                { data: 'secondname' },
+                { data: 'absent' }
+            ]
+        });
     });
     }
     else {
@@ -134,15 +148,37 @@ function getReport() {
             dataType: "json"
         }).done(function (res) {
             console.log(res);
+            document.getElementById("firstTable").style.display='none';
+            document.getElementById("secondTable").style.display='block';
+            $('#addRows').children("tr").remove();
             $('#addRows2').children("tr").remove();
+            /*
             for (var i in res) {
                 var atten;
                 if (res[i].attendance===1) atten="Присутствовал";
                 if (res[i].attendance===0) atten="Отсутствовал";
                 if (res[i].attendance===2) atten="Опоздал";
-                if (res[i].attendance===2) atten="Уважительная причина";
-                $('#addRows2').append('<tr><td>' + res[i].dateAtt+'</td><td>'+atten+'</td><td>'+res[i].comment+'</td></tr>');
+                if (res[i].attendance===3) atten="Уважительная причина";
+                $('#addRows2').append('<tr><td>' + res[i].dateAtt+'</td><td>'+atten+'</td><td>'+res[i].name+'</td><td>'+res[i].comment+'</td></tr>');
+            }*/
+
+            for (var i in res) {
+                var atten;
+                if (res[i].attendance===1) res[i].attendance="Присутствовал";
+                if (res[i].attendance===0) res[i].attendance="Отсутствовал";
+                if (res[i].attendance===2) res[i].attendance="Опоздал";
+                if (res[i].attendance===3) res[i].attendance="Уважительная причина";
             }
+            $('#tableReports2').DataTable( {
+                destroy: true,
+                data: res,
+                columns: [
+                    { data: 'dateAtt' },
+                    { data: 'attendance' },
+                    { data: 'name' },
+                    { data: 'comment' }
+                ]
+            });
         });
     }
 

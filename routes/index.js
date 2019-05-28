@@ -627,24 +627,32 @@ router.post("/getReportTable2", function(req, ress, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
             if (req.body.idStudent != "0" && req.body.idSubject === "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
-                db.query("SELECT id,attendance,DATE_FORMAT(date_attendance, \"%d-%m-%Y\") as date, comment FROM studentattendance WHERE id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
+                db.query("SELECT studentattendance.attendance, DATE_FORMAT(studentattendance.date_attendance, \"%d-%m-%Y\") as date, studentattendance.comment, subjects.name\n" +
+                    "FROM studentattendance\n" +
+                    "INNER JOIN subjteacher ON studentattendance.id_subjteacher=subjteacher.id\n" +
+                    "INNER JOIN subjects ON subjteacher.id_subject=subjects.id \n" +
+                    "WHERE studentattendance.id_student=? AND studentattendance.date_attendance BETWEEN ? AND ?;",[req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
                     if (err) return next(err);
-                    console.log(rows);
+                    //console.log(rows);
                     console.log("3");
                     rows.forEach(row => {
-                        result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
+                        result.push({ name: row.name, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
                     });
                     ress.send(JSON.stringify(result));
                 });
             }
             else {
                 if (req.body.idStudent != "0" && req.body.idSubject != "0") {//ПОСЕЩАЕМОСТЬ СТУДЕНТА ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
-                    db.query("SELECT id,attendance,DATE_FORMAT(date_attendance, \"%d-%m-%Y\") as date, comment FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND id_student=? AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
+                    db.query("SELECT studentattendance.attendance, DATE_FORMAT(studentattendance.date_attendance, \"%d-%m-%Y\") as date, studentattendance.comment, subjects.name\n" +
+                        "FROM studentattendance\n" +
+                        "INNER JOIN subjteacher ON studentattendance.id_subjteacher=subjteacher.id\n" +
+                        "INNER JOIN subjects ON subjteacher.id_subject=subjects.id \n" +
+                        "WHERE subjteacher.id_subject=? AND studentattendance.id_student=? AND studentattendance.date_attendance BETWEEN ? AND ?;",[req.body.idSubject,req.body.idStudent,req.body.beginDate,req.body.endDate], (err, rows) => {
                         if (err) return next(err);
                         //console.log(rows);
                         console.log("4");
                         rows.forEach(row => {
-                            result.push({ id: row.id, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
+                            result.push({ name: row.name, attendance: row.attendance, dateAtt: row.date, comment: row.comment});
                         });
                         ress.send(JSON.stringify(result));
                     });

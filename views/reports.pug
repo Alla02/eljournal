@@ -32,13 +32,10 @@ block content
                                 .col-3
                                     label.col-form-label Выбрать студента
                                     select(id='selectStudentReports' class='form-control')
-                                .col
+                                .col-3
                                     button.btn.btn-primary(type='submit' onclick='getReport()')
                                         | Получить
-                                    #message
-                                    if message
-                                    h2.text-center.error-message #{message}
-
+                            br
                             ul#myTab.nav.nav-tabs(role='tablist')
                                 li.nav-item
                                     a#home-tab.nav-link.active(data-toggle='tab', href='#home', role='tab', aria-controls='home', aria-selected='true') Таблица
@@ -46,18 +43,24 @@ block content
                                     a#profile-tab.nav-link(data-toggle='tab', href='#profile', role='tab', aria-controls='profile', aria-selected='false') График
                             #myTabContent.tab-content
                                 #home.tab-pane.fade.show.active(role='tabpanel', aria-labelledby='home-tab')
-                                    table#tableReports.table.table-bordered.table-responsive
-                                        tr
-                                            th ФИО
-                                            th Количество пропусков
-                                        tbody#addRows
-
-                                    table#tableReports2.table.table-bordered.table-responsive
-                                        tr
-                                            th Дата
-                                            th тип
-                                            th комментарий
-                                        tbody#addRows2
+                                    div(id="firstTable" style='display:none')
+                                        table#tableReports.table.table-bordered.table-responsive
+                                            thead
+                                                tr
+                                                    th Фамилия
+                                                    th Имя
+                                                    th Отчество
+                                                    th Количество пропусков
+                                            tbody#addRows
+                                    div(id="secondTable" style='display:none')
+                                        table#tableReports2.table.table-bordered.table-responsive
+                                            thead
+                                                tr
+                                                    th Дата
+                                                    th Тип
+                                                    th Предмет
+                                                    th Комментарий
+                                            tbody#addRows2
                                 #profile.tab-pane.fade(role='tabpanel', aria-labelledby='profile-tab')
                                     .chart-container(style='position: relative; width:40%')
                                         canvas#results-chart(width='200', height='200')
