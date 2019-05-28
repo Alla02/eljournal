@@ -44,7 +44,7 @@ block content
                             #myTabContent.tab-content
                                 #home.tab-pane.fade.show.active(role='tabpanel', aria-labelledby='home-tab')
                                     div(id="firstTable" style='display:none')
-                                        table#tableReports.table.table-bordered.table-responsive
+                                        table#tableReports.table.table-bordered.table-responsive(style="width:100%")
                                             thead
                                                 tr
                                                     th Фамилия
@@ -53,7 +53,7 @@ block content
                                                     th Количество пропусков
                                             tbody#addRows
                                     div(id="secondTable" style='display:none')
-                                        table#tableReports2.table.table-bordered.table-responsive
+                                        table#tableReports2.table.table-bordered.table-responsive(style="width:100%")
                                             thead
                                                 tr
                                                     th Дата
@@ -61,6 +61,12 @@ block content
                                                     th Предмет
                                                     th Комментарий
                                             tbody#addRows2
+                                            tfoot
+                                                tr
+                                                    th Дата
+                                                    th Тип
+                                                    th Предмет
+                                                    th Комментарий
                                 #profile.tab-pane.fade(role='tabpanel', aria-labelledby='profile-tab')
                                     .chart-container(style='position: relative; width:40%')
                                         canvas#results-chart(width='200', height='200')
