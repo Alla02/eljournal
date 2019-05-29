@@ -1,0 +1,22 @@
+extends layout
+block variables
+  include variables
+block content
+  .container
+    h2= "Личный кабинет"
+    div #{lastname} #{firstname} #{patronymic}
+      if (type_user =="Староста")
+        div Староста группы #{userGroup}
+    div(class="row edit-div")
+      div(class="leftSide col-xs-4 col-sm-4")
+        ul(class="list-group mt-2")
+          li(class="list-group-item")
+            a(href='/changeLastname', class='text-center new-account') Изменить фамилию
+          li(class="list-group-item")
+            a(href='/changeFirstname', class='text-center new-account') Изменить имя
+          li(class="list-group-item")
+            a(href='/changePatronymic', class='text-center new-account') Изменить отчество
+          li(class="list-group-item")
+            a(href='/changeEmail', class='text-center new-account') Изменить e-mail
+          li(class="list-group-item")
+            a(href='/changePassword', class='text-center new-account') Изменить пароль

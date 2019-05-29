@@ -69,7 +69,9 @@ $(document).ready(function () {
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
                             if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");
-                            else if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late");
+                            else {if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late");
+                                else if (data2[i].attendance===3) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("excused");
+                            }
                         }
                     }
                 });
@@ -180,32 +182,17 @@ function saveResults() {
             var day = document.getElementById("selectDay").value;
             var res=[];
             for(var i = 0; i < cells.length; i++){
-                // Cell Object
                 var cell = cells[i];
                 var column = $(cell).index();
                 var idSubj = $('#subjects').find('td').eq(column).attr("id");
                 var idStud = $(cell).parent().attr("id");
                 idStud = idStud.substring(idStud.indexOf("t") + 1);
                 var attend;
-                if ($(cell).hasClass("absent")){
-                    attend = 0;
-                }
+                if ($(cell).hasClass("absent")) attend = 0;
                 else {
-                    if ($(cell).hasClass("present")){
-                        attend = 1;
-                    }
-                    else {
-                        if ($(cell).hasClass("late")){
-                            attend = 2;
-                        }
-                    }
+                    if ($(cell).hasClass("present")) attend = 1;
+                    else if ($(cell).hasClass("late")) attend = 2;
                 }
-                /*
-                if ($(checkboxes[i]).prop('checked')) {
-                    attend = 1;
-                }
-                else attend =0;*/
-
                 res.push({
                     "idStudent" : idStud,
                     "idSubject"  : idSubj,
@@ -220,7 +207,6 @@ function saveResults() {
                 url: "/saveAttendance",
                 contentType: 'application/json',
                 data: JSON.stringify(res)
-                //dataType: "json"
             }).done(function (data) {
                 $("h2").text("Посещаемость сохранена");
             });

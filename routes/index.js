@@ -538,7 +538,7 @@ router.post("/getReportTable", function(req, ress, next) {
         if (err) return next(err); // not connected!
         function getAttCount(id,beginDate,endDate) {
             return new Promise(function(res) {
-                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE id_student=? AND date_attendance BETWEEN ? AND ?;",[id,beginDate,endDate], (err, rows) => {
+                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE attendance=0 AND id_student=? AND date_attendance BETWEEN ? AND ?;",[id,beginDate,endDate], (err, rows) => {
                     if (err) console.log(err);
                     res(rows[0].res);
                 })
@@ -547,7 +547,7 @@ router.post("/getReportTable", function(req, ress, next) {
 
         function getAttCount2(id,idSubject,beginDate,endDate) {
             return new Promise(function(res) {
-                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE id_student=? AND id_subjteacher IN (SELECT id FROM subjteacher WHERE id_subject=?) AND date_attendance BETWEEN ? AND ?;",[id,idSubject,beginDate,endDate], (err, rows) => {
+                db.query("SELECT COUNT(id) as res FROM studentattendance WHERE attendance=0 AND id_student=? AND attendance=0 AND id_subjteacher IN (SELECT id FROM subjteacher WHERE id_subject=?) AND date_attendance BETWEEN ? AND ?;",[id,idSubject,beginDate,endDate], (err, rows) => {
                     if (err) console.log(err);
                     res(rows[0].res);
                 })

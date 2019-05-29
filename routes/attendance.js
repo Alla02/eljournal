@@ -367,9 +367,9 @@ router.post("/saveAttendance", function(req, res, next) {
       })
     }
 
-    async function updateAttendance(attendance,id) {
+    async function updateAttendance(attendance,comment,id) {
       return new Promise(function(res) {
-        db.query("UPDATE studentattendance SET attendance=? WHERE id=?;", [attendance,id], (err) => {
+        db.query("UPDATE studentattendance SET attendance=?, comment=? WHERE id=?;", [attendance,comment,id], (err) => {
           console.log("studentattendance updated");
           if (err) console.log(err);
           res();
@@ -377,9 +377,9 @@ router.post("/saveAttendance", function(req, res, next) {
       })
     }
 
-    async function insertIntoAttendance(idStudent, idSubject, date, attendance) {
+    async function insertIntoAttendance(idStudent, idSubject, date, attendance,comment) {
       return new Promise(function(res) {
-        db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance) VALUES (?,?,?,?);", [idStudent, idSubject, date, attendance], (err) => {
+        db.query("INSERT INTO studentattendance(id_student, id_subjteacher, date_attendance, attendance,comment) VALUES (?,?,?,?,?);", [idStudent, idSubject, date, attendance,comment], (err) => {
           console.log("inserted into studentattendance")
           if (err) console.log(err);
           res();
@@ -392,8 +392,8 @@ router.post("/saveAttendance", function(req, res, next) {
         var res;
         res = await checkIfExist(result[i].idStudent, result[i].idSubject, result[i].date);
         console.log("res "+res);
-        if (res === 0) insertIntoAttendance(result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance);
-        else updateAttendance(result[i].attendance, res);
+        if (res === 0) insertIntoAttendance(result[i].idStudent, result[i].idSubject, result[i].date, result[i].attendance, result[i].comment);
+        else updateAttendance(result[i].attendance,result[i].comment, res);
       }
     }
     save();

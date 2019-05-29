@@ -69,7 +69,9 @@ $(document).ready(function () {
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
                             if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");
-                            else if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late");
+                            else {if (data2[i].attendance===2) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("late");
+                                else if (data2[i].attendance===3) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("excused");
+                            }
                         }
                     }
                 });
@@ -102,7 +104,7 @@ $(document).ready(function () {
             '            <div class="modal-header">\n' +
             '            <h5 class="modal-title" id="exampleModalLongTitle">Добавить комментарий</h5><button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>\n' +
             '        <div class="modal-body"><textarea id="commentField" name="commentField" cols="56" rows="3" maxlength="150"></textarea></div>\n' +
-            '        <div class="modal-footer"><button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button><button class="btn btn-primary" type="button" id="btnSubmitModal">Добавить</button></div>\n' +
+            '        <div class="modal-footer"><button class="btn btn-secondary" type="button" data-dismiss="modal">Отмена</button><button class="btn btn-primary" type="button" id="btnSubmitModal">Добавить</button></div>\n' +
             '        </div>\n' +
             '        </div>\n' +
             '        </div>');
@@ -163,7 +165,7 @@ $(document).ready(function () {
         var $cells = $("tbody td.attend:nth-child(" + col + ")");
         //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
         if ($cells.hasClass("selected")) {
-            if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late") && !$cell.hasClass("excused"))
+            if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late") && !$cells.hasClass("excused"))
                 $cells.addClass("present");
             else {
                 if ($cells.hasClass("excused")) $cells.removeClass("excused").addClass("present");
@@ -211,6 +213,7 @@ function saveResults() {
         var idSubj = $('#subjects').find('td').eq(column).attr("id");
         var idStud = $(cell).parent().attr("id");
         idStud = idStud.substring(idStud.indexOf("t") + 1);
+        var comment = $(cell).find('.comment').text();
         var attend;
         if ($(cell).hasClass("absent")){
             attend = 0;
@@ -238,7 +241,8 @@ function saveResults() {
             "idStudent" : idStud,
             "idSubject"  : idSubj,
             "date"       : day,
-            "attendance" : attend
+            "attendance" : attend,
+            "comment": comment
         });
     }
     console.log(res);
