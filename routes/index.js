@@ -128,6 +128,39 @@ router.post("/regStudents", function(req, res, next) {//для регистра�
     });
 });
 
+router.get('/parentPermission', function(req, res, next) {
+    result = [];
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var studyGroups = [];
+        db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
+            if (err) {
+                return next(err);
+            }
+            rows.forEach(row => {
+                studyGroups.push({ id: row.id, name: row.name });
+            });
+            var login,lastname,secondname,firstname,type_user,email = "";
+            if (req.user){
+                login = req.user.login;
+                lastname = req.user.last_name;
+                firstname = req.user.first_name;
+                type_user = req.user.user_type;
+                email = req.user.email;
+                secondname = req.user.second_name;
+            }
+            res.render("register", {title: "Регистрация", login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email,studyGroups: studyGroups, message: req.flash("registerMessage")});
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
 router.get('/table', function(req, res, next) {
     var studyGroups = [];
     pool.getConnection(function(err, db) {
@@ -233,38 +266,6 @@ router.get('/table', function(req, res, next) {
         });
     });
 });
-/*
-router.post("/table", function(req, res, next) {
-    pool.getConnection(function(err, db) {
-        if (err) return next(err);
-        db.query("SELECT id FROM teachers WHERE id_person=?;",[req.body.teacher], function (err, row) {
-            if (err) return next(err);
-            else { var idTeacher = row[0].id;
-                db.query(`INSERT INTO subjteacher(id_subject, id_teacher, type_subject) VALUES (?,?,?);`,[req.body.subject,idTeacher,req.body.typeSubject], err => {
-                    if (err) return next(err);
-                    else {
-                        db.query("SELECT id FROM subjteacher ORDER BY id DESC LIMIT 1;", function (err, row) {
-                            if (err) return next(err);
-                            var idSubjTeacher = row[0].id;
-                            if (idSubjTeacher != 0) {
-                                db.query("INSERT into schedule (id_group,dayOfWeek,numPair,typeWeek,id_subjteacher,id_semester) values (?,?,?,?,?,?);", [req.body.selectStudyGroup, req.body.weekday, req.body.time, req.body.typeWeek, idSubjTeacher, req.body.semester], function (err) {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                    console.log("inserted into schedule");
-                                })
-                            }
-                        });
-                    }
-                    res.redirect("/table");
-                });
-            }
-        });
-        db.release();
-        if (err) return next(err);
-    });
-});*/
-
 
 
 router.post("/table", function(req, res, next) {
@@ -338,7 +339,7 @@ router.get("/reports", isLoggedIn, function(req, res, next) {
         if (type_user==="Родитель") {
             idTeacher = 0;
             idStudent = 0;
-            sqlgroups = "SELECT id,name FROM studygroups WHERE id IN (SELECT id_group FROM students WHERE id IN (SELECT id_student FROM parentstudent WHERE id_parent=(SELECT id FROM parents WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?)))))";
+            sqlgroups = "SELECT id,name FROM studygroups WHERE id IN (SELECT id_group FROM students WHERE id IN (SELECT id_student FROM parentstudent WHERE id_parent=(SELECT id FROM parents WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))) AND permited=0))";
             db.query("SELECT id FROM parents WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
                 if (err) return next(err);
                 idParent = rows[0].id;

@@ -164,6 +164,7 @@ $(document).ready(function () {
         console.log(col);
         $("tbody td.attend:nth-child(" + col + ")").addClass("selected");
         $("h2").text("");
+        $('#teachersName').text("");
         $.ajax({
             type: "POST",
             url: "/getTeachersName",
@@ -188,7 +189,7 @@ function saveResults() {
         data: jQuery.param({idSubjTeacher: idSubjTeacher, code: code }),
     }).done(function (data) {
         console.log("result from validat "+data.result);
-        if (!data.result) { //УБРАТЬ !
+        if (data.result) {
             var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
            // console.log(col);
             var tab = document.getElementsByTagName("table")[0];

@@ -105,7 +105,80 @@ function UserRegister(a) {
             document.getElementById("selectifCanView").style.display='none';
         }
     }
-};
+}
+
+function savePermission() {
+    var idSubjTeacher = $("#selectPair option:selected").val();
+    var code = $("#code").val();
+    console.log(idSubjTeacher);
+    console.log(code);
+
+    $.ajax({
+        type: "POST",
+        url: "/validateCode",
+        data: jQuery.param({idSubjTeacher: idSubjTeacher, code: code }),
+    }).done(function (data) {
+        console.log("result from validat "+data.result);
+        if (!data.result) { //УБРАТЬ !
+            var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
+            // console.log(col);
+            var tab = document.getElementsByTagName("table")[0];
+            //var cells = tab.getElementsByClassName("attend");
+            var cells = $("tbody td.attend:nth-child(" + col + ")");
+            //var checkboxes = tab.getElementsByClassName("check1");//
+            var day = document.getElementById("selectDay").value;
+            var res=[];
+            for(var i = 0; i < cells.length; i++){
+                // Cell Object
+                var cell = cells[i];
+                var column = $(cell).index();
+                var idSubj = $('#subjects').find('td').eq(column).attr("id");
+                var idStud = $(cell).parent().attr("id");
+                idStud = idStud.substring(idStud.indexOf("t") + 1);
+                var attend;
+                if ($(cell).hasClass("absent")){
+                    attend = 0;
+                }
+                else {
+                    if ($(cell).hasClass("present")){
+                        attend = 1;
+                    }
+                    else {
+                        if ($(cell).hasClass("late")){
+                            attend = 2;
+                        }
+                    }
+                }
+                /*
+                if ($(checkboxes[i]).prop('checked')) {
+                    attend = 1;
+                }
+                else attend =0;*/
+
+                res.push({
+                    "idStudent" : idStud,
+                    "idSubject"  : idSubj,
+                    "date"       : day,
+                    "attendance" : attend
+                });
+            }
+            console.log(res);
+
+            $.ajax({
+                type: "POST",
+                url: "/saveAttendance",
+                contentType: 'application/json',
+                data: JSON.stringify(res)
+                //dataType: "json"
+            }).done(function (data) {
+                $("h2").text("Посещаемость сохранена");
+            });
+        }
+        else {
+            $("h2").text("Код не совпадает");
+        }
+    });
+}
 
 
 
