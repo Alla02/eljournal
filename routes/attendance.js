@@ -260,12 +260,9 @@ router.post("/fillSchedule", function(req, res, next) {
                 groupId: row.id_group,
                 groupName: row.groupName,
                 teacherId: row.id_teacher,
-                teacherName:
-                    row.lastname +
-                    " " +
-                    row.firstname +
-                    " " +
-                    row.secondname,
+                teacherName: row.lastname +
+                    " " + row.firstname +
+                    " " + row.secondname,
                 subjectId: row.id_subject,
                 subjectName: row.subjectName,
                 week: row.typeWeek,

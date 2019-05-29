@@ -9,21 +9,19 @@ block content
             .row.justify-content-center
                 .col-md-10
                     .card
-                        #exampleModalCenter.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalCenterTitle', aria-hidden='true')
+                        //#exampleModalCenter.modal.fade(tabindex='-1', role='dialog', aria-labelledby='exampleModalCenterTitle', aria-hidden='true')
                             .modal-dialog.modal-dialog-centered(role='document')
                                 .modal-content
                                     .modal-header
-                                        h5#exampleModalLongTitle.modal-title Добавить файл или комментарий
+                                        h5#exampleModalLongTitle.modal-title Добавить комментарий
                                         button.close(type='button', data-dismiss='modal', aria-label='Close')
                                             span(aria-hidden='true') ×
                                     .modal-body
                                         textarea(id='commentField' name='commentField', cols='56', rows='3' maxlength='150')
-                                        .custom-file
-                                            input#inputGroupFile01.custom-file-input(type='file')
-                                            label.custom-file-label(for='inputGroupFile01') Выбрать файл
                                     .modal-footer
                                         button.btn.btn-secondary(type='button', data-dismiss='modal') Close
                                         button.btn.btn-primary(type='button' id='btnSubmitModal') Добавить
+                        #modalHere
                         .card-header Посещаемость группы #{groupName}
                         .card-body
                             div(class="tab-pane active" id="tab2" oncontextmenu="return false;")

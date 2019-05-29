@@ -54,21 +54,9 @@ $(document).ready(function () {
                     var shortSubject = (data[i].subjectName).replace('Дисциплина по выбору','ДПВ'); //сокращение дисциплины по выбору.
                     if (data[i].typeSubject==="практика") $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typePractice chkParent">'+shortSubject+'</td>');
                     else $('#subjects').append('<td id="'+data[i].idSubjTeacher+'"class="typeLection chkParent">'+shortSubject+'</td>');
-                    //$('.check').append('<td class="attend"><input type="checkbox" class="check1"></td>');
-                    //$('.check2').append('<td><input type="checkbox" class="chkParent"></td>');
                     $('.check').append('<td class="attend"></td>');
-                    //$('.check2').append('<td class="chkParent"></td>');
                     $('#selectPair').append('<option value="'+data[i].idSubjTeacher+'">' + data[i].subjectName + " ("+ times[data[i].numPair-1]+")"+'</option>');
                 }
-                /*//НЕ УДАЛЯТЬ. ДЛЯ ЧЕКБОКСОВ
-                $('.chkParent').on("change", function() {
-                    var $cb = $(this),
-                        $th = $cb.closest("td"), // get parent th
-                        col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
-                    //alert(col);
-                    $("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
-                });*/
-
                 $.ajax({
                     type: "POST",
                     url: "/fillAttendance",
@@ -77,14 +65,7 @@ $(document).ready(function () {
                 }).done(function (data2) {
                     console.log("data2 "+data2);
                     for (var i in data2) {
-                        //console.log("d "+data2[i].idSubjTeacher +" " +data2[i].idStudent);
                         var column = $("#" + data2[i].idSubjTeacher).index();
-                       // console.log(column);
-                       // var column = $(cell).index();
-                        //var idSubj = $('#subjects').find('td').eq(column).attr("id");
-                        //var idStud = $(cell).parent().attr("id");
-                        //$("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
-                        //console.log("att "+data2[i].attendance);
                         if (data2[i].attendance===0) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("absent");
                         else {
                             if (data2[i].attendance === 1) $("#st" + data2[i].idStudent).find('td').eq(column).addClass("present");

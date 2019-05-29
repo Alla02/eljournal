@@ -92,15 +92,28 @@ $(document).ready(function () {
 
 
     $(document).on("contextmenu", "td.attend" , function() {
+        $('#exampleModalCenter').remove();
+        $('.modal-backdrop').remove();
         var cell = $(this);
+
+        $('#modalHere').append('<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">\n' +
+            '            <div class="modal-dialog modal-dialog-centered" role="document">\n' +
+            '            <div class="modal-content">\n' +
+            '            <div class="modal-header">\n' +
+            '            <h5 class="modal-title" id="exampleModalLongTitle">Добавить комментарий</h5><button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button></div>\n' +
+            '        <div class="modal-body"><textarea id="commentField" name="commentField" cols="56" rows="3" maxlength="150"></textarea></div>\n' +
+            '        <div class="modal-footer"><button class="btn btn-secondary" type="button" data-dismiss="modal">Close</button><button class="btn btn-primary" type="button" id="btnSubmitModal">Добавить</button></div>\n' +
+            '        </div>\n' +
+            '        </div>\n' +
+            '        </div>');
         if (cell.hasClass("selected")) {
             cell.removeClass("absent late present").addClass("excused");
             //$('#exampleModalCenter').modal('show');
             $('#exampleModalCenter').modal('toggle');
-            var column = cell.index();
-            var idSubj = $('#subjects').find('td').eq(column).attr("id");
-            var idStud = cell.parent().attr("id");
-            console.log(column, idSubj,idStud);
+            //var column = cell.index();
+            //var idSubj = $('#subjects').find('td').eq(column).attr("id");
+            //var idStud = cell.parent().attr("id");
+            //console.log(column, idSubj,idStud);
             $( "#btnSubmitModal" ).on("click", function() {
                 var field1value = $("#commentField").val();
                 console.log("field1value "+field1value);
@@ -108,9 +121,19 @@ $(document).ready(function () {
                 //$("#commentField").val('');
                 //$('#exampleModalCenter').modal('hide');
                 $('#exampleModalCenter').modal('toggle');
-                event.stopPropagation();
+                //$('#modalHere').remove();
+                //$('#exampleModalCenter').modal('dispose');
+                //event.stopPropagation();
             });
+
         }
+        //$("#commentField").html('');
+        //$("#commentField").val('');
+        //$("#commentField").text('');
+        /*
+        $(".modal").on("hidden.bs.modal", function(){
+            $(".modal-body1").html("");
+        });*/
     });
 
 
