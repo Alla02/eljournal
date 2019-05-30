@@ -122,16 +122,10 @@ $(document).ready(function () {
             if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late"))
                 $cells.addClass("present");
             else {
-                if ($cells.hasClass("present")) {
-                    $cells.removeClass("present").addClass("absent");
-                } else {
-                    if ($cells.hasClass("absent")) {
-                        $cells.removeClass("absent").addClass("late");
-                    } else {
-                        if ($cells.hasClass("late")) {
-                            $cells.removeClass("late").addClass("present");
-                        }
-                    }
+                if ($cells.hasClass("present")) $cells.removeClass("present").addClass("absent");
+                else {
+                    if ($cells.hasClass("absent")) $cells.removeClass("absent").addClass("late");
+                    else if ($cells.hasClass("late")) $cells.removeClass("late").addClass("present");
                 }
             }
         }

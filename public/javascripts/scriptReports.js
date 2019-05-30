@@ -136,7 +136,22 @@ function getReport() {
                 { data: 'firstname' },
                 { data: 'secondname' },
                 { data: 'absent' }
-            ]
+            ],
+            "lengthMenu": [ [-1, 10], ["Все", 10] ],
+            "language": {
+                "lengthMenu": "Показывать по _MENU_ записей на странице",
+                "search": "Поиск:",
+                "zeroRecords": "Поиск не дал результатов",
+                "info": "Страница _PAGE_ из _PAGES_",
+                "infoEmpty": "Записи не найдены",
+                "infoFiltered": "(всего записей _MAX_)",
+                "paginate": {
+                    "first": "Первая",
+                    "last": "Последняя",
+                    "next": "Следующая",
+                    "previous": "Предыдущая"
+                },
+            }
         });
     });
     }
@@ -197,6 +212,21 @@ function getReport() {
                             select.append( '<option value="'+d+'">'+d+'</option>' )
                         } );
                     } );
+                },
+                "lengthMenu": [ [-1, 10], ["Все", 10] ],
+                "language": {
+                    "lengthMenu": "Показывать по _MENU_ записей на странице",
+                    "search": "Поиск:",
+                    "zeroRecords": "Поиск не дал результатов",
+                    "info": "Страница _PAGE_ из _PAGES_",
+                    "infoEmpty": "Записи не найдены",
+                    "infoFiltered": "(всего записей _MAX_)",
+                    "paginate": {
+                        "first": "Первая",
+                        "last": "Последняя",
+                        "next": "Следующая",
+                        "previous": "Предыдущая"
+                    },
                 }
             });
         });
