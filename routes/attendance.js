@@ -240,9 +240,8 @@ router.post("/fillSchedule", function(req, res, next) {
   pool.getConnection(function(err, db) {
     if (err) return next(err);
     db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
-      if (err) {
-        return next(err);
-      }
+      if (err) return next(err);
+      if (rows.length ===0) res.send(JSON.stringify(result));
       else {
         var arr = ['Обе'];
         var week = getWeek(rows[0].start, rows[0].week,req.body.selecteddate);
