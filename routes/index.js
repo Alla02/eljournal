@@ -533,7 +533,7 @@ router.post("/getReport", function(req, res, next) {
     console.log(req.body.beginDate, req.body.endDate, req.body.idGroup, req.body.idSubject, req.body.idStudent, req.body.studentId);
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        if (req.body.idSubject === "0" && req.body.idStudent === "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
+        if (req.body.idSubject === "0" && req.body.idStudent === "0" && req.body.studentId==="0"&& req.body.idParent==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
             db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.beginDate,req.body.endDate], (err, rows) => {
                 if (err) return next(err);
                 //console.log(rows);
@@ -545,7 +545,7 @@ router.post("/getReport", function(req, res, next) {
             });
         }
         else {
-            if (req.body.idStudent === "0" && req.body.idSubject != "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
+            if (req.body.idStudent === "0" && req.body.idSubject != "0" && req.body.studentId==="0"&& req.body.idParent==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
                 db.query("SELECT * FROM studentattendance WHERE id_subjteacher IN (SELECT id FROM subjteacher WHERE id_group=? AND id_subject=?) AND date_attendance BETWEEN ? AND ?;",[req.body.idGroup,req.body.idSubject,req.body.beginDate,req.body.endDate], (err, rows) => {
                     if (err) return next(err);
                     //console.log(rows);
@@ -611,7 +611,7 @@ router.post("/getReportTable", function(req, ress, next) {
             })
         }
 
-        if (req.body.idSubject === "0" && req.body.idStudent === "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
+        if (req.body.idSubject === "0" && req.body.idStudent === "0" && req.body.studentId==="0"&& req.body.idParent==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД
             db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId \n" +
                 "FROM students \n" +
                 "INNER JOIN persons ON students.id_person=persons.id\n" +
@@ -643,7 +643,7 @@ router.post("/getReportTable", function(req, ress, next) {
             });
         }
         else {
-            if (req.body.idStudent === "0" && req.body.idSubject != "0" && req.body.studentId==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
+            if (req.body.idStudent === "0" && req.body.idSubject != "0" && req.body.studentId==="0"&& req.body.idParent==="0") {//ПОСЕЩАЕМОСТЬ ГРУППЫ ЗА ОПРЕДЕЛЕННЫЙ ПЕРИОД (ПО ПРЕДМЕТУ)
                 db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, students.id as stId \n" +
                     "FROM students \n" +
                     "INNER JOIN persons ON students.id_person=persons.id\n" +

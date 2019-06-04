@@ -27,9 +27,6 @@ $(document).ready(function () {
         var idTeacher = $("#idTeacher").val();
         var idStudent = $("#idStudent").val();
         var idParent = $("#idParent").val();
-        //console.log(idTeacher);
-        //$("#selectStudentReports").append('<option value="0"></option>');
-        //$("#selectSubjectReports").append('<option value="0"></option>');
         $.ajax({
             url: "/studentsListReport",
             type: "POST",
@@ -67,15 +64,15 @@ function getReport() {
     var idSubject = $("#selectSubjectReports").val();
     var idStudent = $("#selectStudentReports").val();
     var studentId = $("#idStudent").val();//id студента со страницы
+    var idParent = $("#idParent").val();//id родителя со страницы
     $.ajax({
         type: "POST",
         url: "/getReport",
-        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId}),
+        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId, idParent: idParent}),
         dataType: "json"
     }).done(function (res) {
         console.log(typeof res);
         var present=0, absent=0,late=0,excused=0;
-        //id: row.id, attendance: row.attendance, dateAtt: row.date_attendance
         for (var i in res) {
             if (res[i].attendance===1) present++;
             if (res[i].attendance===0) absent++;
@@ -106,7 +103,6 @@ function getReport() {
         };
 
         var pieChart = new Chart(ctx, {
-            //responsive: true,
             type: 'pie',
             data: attData
         });
@@ -116,7 +112,7 @@ function getReport() {
     $.ajax({
         type: "POST",
         url: "/getReportTable",
-        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId}),
+        data: jQuery.param({beginDate: beginDate, endDate: endDate, idGroup:idGroup, idSubject: idSubject, idStudent: idStudent, studentId: studentId, idParent:idParent}),
         dataType: "json"
     }).done(function (res) {
         console.log(res);
