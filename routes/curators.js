@@ -14,7 +14,7 @@ isLoggedIn = function(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 };
 
@@ -23,31 +23,43 @@ router.get("/listCurators",isLoggedIn, function(req, res, next) {
     var studyGroups = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
-            "FROM persons "+
-            "INNER JOIN curators ON persons.id = curators.id_person "+
-            "ORDER BY last_name", (err, rows) => {
+        var login,lastname,secondname,firstname,type_user,email = "";
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
             if (err) return next(err);
-            rows.forEach(row => {
-                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname});
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id " +
+                    "FROM persons " +
+                    "INNER JOIN curators ON persons.id = curators.id_person " +
+                    "ORDER BY last_name", (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        result.push({
+                            id: row.id,
+                            firstname: row.firstname,
+                            lastname: row.lastname,
+                            secondname: row.secondname
+                        });
+                    });
+                    res.render("listCurators", {
+                        title: "Список кураторов",
+                        res: result, login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            res.render("listCurators", {title: "Список кураторов",
-                res: result,login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -59,31 +71,43 @@ router.get("/curator/:id", isLoggedIn, function(req, res, next) {
         if (err) return next(err);
         var studyGroups = [];
         var result = [];
-        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
-            "FROM persons "+
-            "INNER JOIN curators ON persons.id = curators.id_person "+
-            "WHERE curators.id=?",req.params.id, (err, rows) => {
+        var login,lastname,secondname,firstname,type_user,email = "";
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
             if (err) return next(err);
-            rows.forEach(row => {
-                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id " +
+                    "FROM persons " +
+                    "INNER JOIN curators ON persons.id = curators.id_person " +
+                    "WHERE curators.id=?", req.params.id, (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        result.push({
+                            id: row.id,
+                            firstname: row.firstname,
+                            lastname: row.lastname,
+                            secondname: row.secondname
+                        });
+                    });
+                    res.render("curator", {
+                        title: "Куратор",
+                        val: result[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            res.render("curator", {title: "Куратор",
-                val: result[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -107,31 +131,42 @@ router.get("/delCurator/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         var result=[];
-        db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id "+
-            "FROM persons "+
-            "INNER JOIN curators ON persons.id = curators.id_person "+
-            "WHERE curators.id=?",req.params.id, (err, rows) => {
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
             if (err) return next(err);
-            rows.forEach(row => {
-                result.push({ id: row.id, firstname: row.firstname, lastname: row.lastname,secondname: row.secondname });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT persons.last_name as lastname, persons.first_name as firstname, persons.second_name as secondname, curators.id " +
+                    "FROM persons " +
+                    "INNER JOIN curators ON persons.id = curators.id_person " +
+                    "WHERE curators.id=?", req.params.id, (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        result.push({
+                            id: row.id,
+                            firstname: row.firstname,
+                            lastname: row.lastname,
+                            secondname: row.secondname
+                        });
+                    });
+                    res.render("delCurator", {
+                        val: result[0], login: login, title: "Удалить куратора",
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            res.render("delCurator", {
-                val: result[0],login: login,title: "Удалить куратора",
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);

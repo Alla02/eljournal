@@ -14,29 +14,68 @@ isLoggedIn = function(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 };
-router.get('/importSchedule', isLoggedIn, function(req, res, next) {
-    var login,lastname,firstname,secondname,type_user,email = "";
-    login = req.user.login;
-    lastname = req.user.last_name;
-    firstname = req.user.first_name;
-    type_user = req.user.user_type;
-    email = req.user.email;
-    secondname = req.user.second_name;
-    console.log(req.user)
 
-    res.render("importSchedule", {
-        title: "Импорт расписания",
-        login: login,
-        lastname: lastname,
-        firstname: firstname,
-        secondname: secondname,
-        type_user: type_user,
-        email: email
+router.get('/importSchedule',isLoggedIn, function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var login,lastname,secondname,firstname,type_user,email = "";
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                res.render("importSchedule", {
+                    title: "Импорт расписания",
+                    login: login,
+                    lastname: lastname,
+                    firstname: firstname,
+                    secondname: secondname,
+                    type_user: type_user,
+                    email: email
+                });
+            }
+            else res.redirect("/");
+        });
+        db.release();
+        if (err) return next(err);
     });
 });
+/*
+router.get('/importSchedule', isLoggedIn, function(req, res, next) {
+    var login,lastname,secondname,firstname,type_user,email = "";
+    if (req.user){
+        login = req.user.login;
+        lastname = req.user.last_name;
+        firstname = req.user.first_name;
+        type_user = req.user.user_type;
+        email = req.user.email;
+        secondname = req.user.second_name;
+    }
+    db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+        if (err) return next(err);
+        if (rows.length != 0 && rows[0].isAdmin===1 ) {
+            res.render("importSchedule", {
+                title: "Импорт расписания",
+                login: login,
+                lastname: lastname,
+                firstname: firstname,
+                secondname: secondname,
+                type_user: type_user,
+                email: email
+            });
+        }
+        else res.redirect("/");
+    });
+});*/
 
 /*
 router.get("/getSubjects", function(req, res, next) {

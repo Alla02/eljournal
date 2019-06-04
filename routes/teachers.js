@@ -14,7 +14,7 @@ isLoggedIn = function(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 };
 
@@ -22,30 +22,41 @@ router.get("/listTeachers",isLoggedIn, function(req, res, next) {
     var result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, teachers.approval_code as code, teachers.id as tId FROM teachers " +
-            "INNER JOIN persons ON teachers.id_person=persons.id ORDER BY persons.last_name", (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, teachers.approval_code as code, teachers.id as tId FROM teachers " +
+                    "INNER JOIN persons ON teachers.id_person=persons.id ORDER BY persons.last_name", (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        result.push({
+                            id: row.tId,
+                            firstname: row.firstname,
+                            lastname: row.lastname,
+                            secondname: row.secondname,
+                            code: row.code
+                        });
+                    });
+                    res.render("listTeachers", {
+                        result: result, login: login,
+                        lastname: lastname, title: "Список преподавателей",
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            rows.forEach(row => {
-                result.push({ id: row.tId, firstname: row.firstname, lastname: row.lastname, secondname: row.secondname, code: row.code });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("listTeachers", {result: result,login: login,
-                lastname: lastname,title: "Список преподавателей",
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -55,28 +66,33 @@ router.get("/listTeachers",isLoggedIn, function(req, res, next) {
 router.get("/teacher/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, teachers.approval_code as code, teachers.id as id FROM teachers " +
-            "INNER JOIN persons ON teachers.id_person=persons.id WHERE teachers.id=?", req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, teachers.approval_code as code, teachers.id as id FROM teachers " +
+                    "INNER JOIN persons ON teachers.id_person=persons.id WHERE teachers.id=?", req.params.id, (err, rows) => {
+                    if (err) return next(err);
+                    res.render("teacher", {
+                        title: "Преподаватель",
+                        val: rows[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("teacher", {title: "Преподаватель",
-                val: rows[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -133,9 +149,7 @@ router.post("/delTeacher/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         db.query(`DELETE FROM teachers WHERE id=?;`, req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
-            }
+            if (err) return next(err);
         });
         db.release();
         if (err) return next(err);

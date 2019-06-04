@@ -14,7 +14,7 @@ isLoggedIn = function(req, res, next) {
   if (req.isAuthenticated()) {
     next();
   } else {
-    res.redirect("/register");
+    res.redirect("/login");
   }
 };
 
@@ -34,7 +34,7 @@ router.post("/login", passport.authenticate("local-login", {
 
 router.get("/logout", function(req, res, next) {
   req.logout();
-  res.redirect("/");
+  res.redirect("/login");
 });
 
 /* GET home page. */
@@ -59,33 +59,41 @@ router.get('/', isLoggedIn, function(req, res, next) {
   });
 });
 
-router.get('/register', function(req, res, next) {
+router.get('/register',isLoggedIn, function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
       if (err) return next(err); // not connected!
         var studyGroups = [];
-        db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
-          if (err) {
-            return next(err);
-          }
-          rows.forEach(row => {
-            studyGroups.push({ id: row.id, name: row.name });
-          });
-          	var login,lastname,secondname,firstname,type_user,email = "";
-          if (req.user){
-			login = req.user.login;
-			lastname = req.user.last_name;
-			firstname = req.user.first_name;
-			type_user = req.user.user_type;
-			email = req.user.email;
-			secondname = req.user.second_name;
-		  }
-		  res.render("register", {title: "Регистрация", login: login,
-		    lastname: lastname,
-		    firstname: firstname,
-		    secondname: secondname,
-		    type_user: type_user,
-		    email: email,studyGroups: studyGroups, message: req.flash("registerMessage")});
+        var login,lastname,secondname,firstname,type_user,email = "";
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    rows.forEach(row => {
+                        studyGroups.push({id: row.id, name: row.name});
+                    });
+                    res.render("register", {
+                        title: "Регистрация", login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email, studyGroups: studyGroups, message: req.flash("registerMessage")
+                    });
+                });
+            }
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);

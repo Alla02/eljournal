@@ -14,7 +14,7 @@ isLoggedIn = function(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 };
 
@@ -22,29 +22,36 @@ router.get("/listSubjects",isLoggedIn, function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM subjects ORDER BY name", (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM subjects ORDER BY name", (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    rows.forEach(row => {
+                        result.push({id: row.id, name: row.name});
+                    });
+                    res.render("listSubjects", {
+                        res: result, login: login,
+                        lastname: lastname, title: "Список предметов",
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            rows.forEach(row => {
-                result.push({ id: row.id, name: row.name });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("listSubjects", {res: result,login: login,
-                lastname: lastname,title: "Список предметов",
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -73,27 +80,34 @@ router.post("/addSubject", isLoggedIn, function(req, res, next) {
 router.get("/subject/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM subjects WHERE id=?", req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM subjects WHERE id=?", req.params.id, (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.render("subject", {
+                        title: "Предмет",
+                        val: rows[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("subject", {title: "Предмет",
-                val: rows[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -119,25 +133,32 @@ router.post("/subject/:id", isLoggedIn, function(req, res, next) {
 router.get("/delSubject/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM subjects WHERE id=?", req.params.id, (err, rows) => {
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
             if (err) return next(err);
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM subjects WHERE id=?", req.params.id, (err, rows) => {
+                    if (err) return next(err);
+                    res.render("delSubject", {
+                        title: "Удалить предмет",
+                        val: rows[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            res.render("delSubject", {title: "Удалить предмет",
-                val: rows[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);

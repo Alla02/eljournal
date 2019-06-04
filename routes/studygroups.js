@@ -14,7 +14,7 @@ isLoggedIn = function(req, res, next) {
     if (req.isAuthenticated()) {
         next();
     } else {
-        res.redirect("/register");
+        res.redirect("/login");
     }
 };
 
@@ -22,30 +22,37 @@ router.get("/listGroups",isLoggedIn, function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT id, name, YEAR(year_admission) as year_admission FROM studyGroups ORDER BY name", (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT id, name, YEAR(year_admission) as year_admission FROM studyGroups ORDER BY name", (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    rows.forEach(row => {
+                        result.push({id: row.id, name: row.name, yearAdmission: row.year_admission});
+                    });
+                    res.render("listGroups", {
+                        title: "Список групп",
+                        studyGroup: result, login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            rows.forEach(row => {
-                result.push({ id: row.id, name: row.name, yearAdmission: row.year_admission });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("listGroups", {title: "Список групп",
-                studyGroup: result,login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -71,27 +78,34 @@ router.post("/addGroup", function(req, res, next) {
 router.get("/studygroup/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM studyGroups WHERE id=?", req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM studyGroups WHERE id=?", req.params.id, (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.render("studyGroup", {
+                        title: "Группа",
+                        val: rows[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("studyGroup", {title: "Группа",
-                val: rows[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
@@ -121,27 +135,34 @@ router.post("/studygroup/:id", isLoggedIn, function(req, res, next) {
 router.get("/delGroup/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
-        db.query("SELECT * FROM studygroups WHERE id=?", req.params.id, (err, rows) => {
-            if (err) {
-                return next(err);
+        var login, lastname, secondname, firstname, type_user, email = "";
+        if (req.user) {
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        db.query("SELECT isAdmin FROM curators WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?))",[login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].isAdmin===1 ) {
+                db.query("SELECT * FROM studygroups WHERE id=?", req.params.id, (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.render("delGroup", {
+                        title: "Удалить группу",
+                        val: rows[0], login: login,
+                        lastname: lastname,
+                        firstname: firstname,
+                        secondname: secondname,
+                        type_user: type_user,
+                        email: email
+                    });
+                });
             }
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("delGroup", {title: "Удалить группу",
-                val: rows[0],login: login,
-                lastname: lastname,
-                firstname: firstname,
-                secondname: secondname,
-                type_user: type_user,
-                email: email
-            });
+            else res.redirect("/");
         });
         db.release();
         if (err) return next(err);
