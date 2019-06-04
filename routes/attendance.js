@@ -53,7 +53,7 @@ router.get('/attendance/:id',isLoggedIn, function(req, res, next) {
                   });
                 });
                 res.render("attendance", {
-                  groupName: groupName,
+                  groupName: groupName,title: "Посещаемость",
                   listStudents: listStudents,
                   login: login,
                   lastname: lastname,
@@ -457,7 +457,7 @@ router.get('/attCurator/:id',isLoggedIn, function(req, res, next) {
                 });
               });
               res.render("attCurator", {
-                groupName: groupName,
+                groupName: groupName,title: "Посещаемость (куратор)",
                 listStudents: listStudents,
                 login: login,
                 lastname: lastname,

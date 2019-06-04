@@ -15,6 +15,7 @@ var studentsRouter = require('./routes/students');
 var studygroupsRouter = require('./routes/studygroups');
 var subjectsRouter = require('./routes/subjects');
 var semestersRouter = require('./routes/semesters');
+var reportsRouter = require('./routes/reports');
 
 var app = express();
 
@@ -60,6 +61,7 @@ app.use('/', studentsRouter);
 app.use('/', studygroupsRouter);
 app.use('/', subjectsRouter);
 app.use('/', semestersRouter);
+app.use('/', reportsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

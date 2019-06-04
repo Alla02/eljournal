@@ -38,7 +38,7 @@ router.get("/listGroups",isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("listGroups", {
+            res.render("listGroups", {title: "Список групп",
                 studyGroup: result,login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -84,7 +84,7 @@ router.get("/studygroup/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("studyGroup", {
+            res.render("studyGroup", {title: "Группа",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -134,7 +134,7 @@ router.get("/delGroup/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delGroup", {
+            res.render("delGroup", {title: "Удалить группу",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,

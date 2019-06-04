@@ -36,7 +36,7 @@ router.get("/listSemesters",isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("listSemesters", {
+            res.render("listSemesters", {title: "Список семестров",
                 result: result,login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -68,7 +68,7 @@ router.get("/semester/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("semester", {
+            res.render("semester", {title: "Семестр",
                 val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -113,7 +113,7 @@ router.get("/delSemester/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delSemester", {
+            res.render("delSemester", {title: "Удалить семестр",
                 val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,

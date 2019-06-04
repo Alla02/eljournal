@@ -136,7 +136,7 @@ router.get("/delStudent/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delStudent", {
+            res.render("delStudent", {title: "Удалить студента",
                 val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,

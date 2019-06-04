@@ -40,7 +40,7 @@ router.get("/listTeachers",isLoggedIn, function(req, res, next) {
                 secondname = req.user.second_name;
             }
             res.render("listTeachers", {result: result,login: login,
-                lastname: lastname,
+                lastname: lastname,title: "Список преподавателей",
                 firstname: firstname,
                 secondname: secondname,
                 type_user: type_user,
@@ -69,7 +69,7 @@ router.get("/teacher/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("teacher", {
+            res.render("teacher", {title: "Преподаватель",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -114,7 +114,7 @@ router.get("/delTeacher/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delTeacher", {
+            res.render("delTeacher", {title: "Удалить преподавателя",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,

@@ -40,7 +40,7 @@ router.get("/listCurators",isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("listCurators", {
+            res.render("listCurators", {title: "Список кураторов",
                 res: result,login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -76,7 +76,7 @@ router.get("/curator/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("curator", {
+            res.render("curator", {title: "Куратор",
                 val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -125,7 +125,7 @@ router.get("/delCurator/:id", isLoggedIn, function(req, res, next) {
                 secondname = req.user.second_name;
             }
             res.render("delCurator", {
-                val: result[0],login: login,
+                val: result[0],login: login,title: "Удалить куратора",
                 lastname: lastname,
                 firstname: firstname,
                 secondname: secondname,

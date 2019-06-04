@@ -39,7 +39,7 @@ router.get("/listParents",isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("listParents", {
+            res.render("listParents", {title: "Список родителей",
                 res: result,login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -75,7 +75,7 @@ router.get("/parent/:id", isLoggedIn, function(req, res, next) {
                 secondname = req.user.second_name;
             }
             res.render("parent", {
-                val: result[0],login: login,
+                val: result[0],login: login,title: "Родитель",
                 lastname: lastname,
                 firstname: firstname,
                 secondname: secondname,
@@ -122,7 +122,7 @@ router.get("/delParent/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delParent", {
+            res.render("delParent", {title: "Удалить родителя",
                 val: result[0],login: login,
                 lastname: lastname,
                 firstname: firstname,

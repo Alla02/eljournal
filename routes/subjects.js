@@ -39,7 +39,7 @@ router.get("/listSubjects",isLoggedIn, function(req, res, next) {
                 secondname = req.user.second_name;
             }
             res.render("listSubjects", {res: result,login: login,
-                lastname: lastname,
+                lastname: lastname,title: "Список предметов",
                 firstname: firstname,
                 secondname: secondname,
                 type_user: type_user,
@@ -86,7 +86,7 @@ router.get("/subject/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("subject", {
+            res.render("subject", {title: "Предмет",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
@@ -130,7 +130,7 @@ router.get("/delSubject/:id", isLoggedIn, function(req, res, next) {
                 email = req.user.email;
                 secondname = req.user.second_name;
             }
-            res.render("delSubject", {
+            res.render("delSubject", {title: "Удалить предмет",
                 val: rows[0],login: login,
                 lastname: lastname,
                 firstname: firstname,
