@@ -2,21 +2,22 @@ extends layout
 block variables
   include variables
 block content
+  br
   .container
-    h2= "Личный кабинет"
-    div #{lastname} #{firstname} #{patronymic}
-      if (type_user =="Староста")
-        div Староста группы #{userGroup}
-    div(class="row edit-div")
-      div(class="leftSide col-xs-4 col-sm-4")
-        ul(class="list-group mt-2")
-          li(class="list-group-item")
-            a(href='/changeLastname', class='text-center new-account') Изменить фамилию
-          li(class="list-group-item")
-            a(href='/changeFirstname', class='text-center new-account') Изменить имя
-          li(class="list-group-item")
-            a(href='/changePatronymic', class='text-center new-account') Изменить отчество
-          li(class="list-group-item")
-            a(href='/changeEmail', class='text-center new-account') Изменить e-mail
-          li(class="list-group-item")
-            a(href='/changePassword', class='text-center new-account') Изменить пароль
+    h2="Изменить разрешение"
+    .account-wall
+      if idStudent===0
+        p(class="text-center") Вы не можете редактировать этот атрибут
+      else
+        form(id="changeParentPermission" action='/parentPermission', method='POST')
+          label(class="text-form") #{pln} #{pfn} #{psn}
+          br
+          if permited===0
+            input(type='checkbox', id='permission', name='permission', checked='true')
+          else
+            input(type='checkbox', id='permission', name='permission')
+          button(class='btn btn-lg btn-primary btn-block mt-2', type='submit') Сохранить
+
+        div(id="message")
+        if message
+          div(class="text-center error-message") #{message}

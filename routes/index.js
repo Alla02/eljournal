@@ -128,36 +128,93 @@ router.post("/regStudents", function(req, res, next) {//для регистра�
     });
 });
 
-router.get('/parentPermission', function(req, res, next) {
+router.get('/parentPermission',isLoggedIn, function(req, res, next) {
     result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err); // not connected!
         var studyGroups = [];
-        db.query("SELECT * FROM studyGroups ORDER BY name", (err, rows) => {
-            if (err) {
-                return next(err);
+        var login,lastname,secondname,firstname,type_user,email = "";
+        if (req.user){
+            login = req.user.login;
+            lastname = req.user.last_name;
+            firstname = req.user.first_name;
+            type_user = req.user.user_type;
+            email = req.user.email;
+            secondname = req.user.second_name;
+        }
+        var idStudent, permited, psn,pln,pfn;
+        db.query("SELECT students.id, YEAR(CURDATE()) - YEAR(persons.birthYear) AS age" +
+            "    FROM students " +
+            "    INNER JOIN persons ON students.id_person=persons.id" +
+            "    INNER JOIN users ON persons.id_user=users.id" +
+            "    WHERE users.login=?;", [login], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length != 0 && rows[0].age>=18 ) {
+                idStudent = rows[0].id;
+                db.query("SELECT persons.second_name as secondname, persons.last_name as lastname, persons.first_name as firstname, parentstudent.permited" +
+                    "    FROM parentstudent " +
+                    "    INNER JOIN parents ON parentstudent.id_parent=parents.id" +
+                    "    INNER JOIN persons ON parents.id_person=persons.id" +
+                    "    WHERE id_student=?;", [idStudent], (err, rows) => {
+                    if (err) return next(err);
+                    if (rows.length != 0) {
+                        permited = rows[0].permited;
+                        psn = rows[0].secondname;
+                        pln = rows[0].lastname;
+                        pfn = rows[0].firstname;
+                        res.render("parentPermission", {idStudent: idStudent, login: login,
+                            lastname: lastname,
+                            firstname: firstname,
+                            secondname: secondname,
+                            psn: psn, pln: pln, pfn: pfn,permited: permited,
+                            type_user: type_user,
+                            email: email
+                        });
+                    }
+                    else {idStudent = 0;
+                        res.render("parentPermission", {idStudent: idStudent, login: login,
+                            lastname: lastname,
+                            firstname: firstname,
+                            secondname: secondname,
+                            psn: psn, pln: pln, pfn: pfn,
+                            type_user: type_user,
+                            email: email
+                        });
+                    }
+                });
             }
-            rows.forEach(row => {
-                studyGroups.push({ id: row.id, name: row.name });
-            });
-            var login,lastname,secondname,firstname,type_user,email = "";
-            if (req.user){
-                login = req.user.login;
-                lastname = req.user.last_name;
-                firstname = req.user.first_name;
-                type_user = req.user.user_type;
-                email = req.user.email;
-                secondname = req.user.second_name;
-            }
-            res.render("register", {title: "Регистрация", login: login,
+            else {idStudent = 0;
+            res.render("parentPermission", {idStudent: idStudent, login: login,
                 lastname: lastname,
                 firstname: firstname,
                 secondname: secondname,
+                psn: psn, pln: pln, pfn: pfn,
                 type_user: type_user,
-                email: email,studyGroups: studyGroups, message: req.flash("registerMessage")});
+                email: email
+            });
+            }
         });
         db.release();
         if (err) return next(err);
+    });
+});
+
+router.post("/parentPermission", function(req, res, next) {
+    var permission;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err); // not connected!
+        var login = "";
+        if (req.user){
+            login = req.user.login;
+        }
+        if (req.body.permission==="on") permission = 0;
+        else permission =1;
+        db.query("UPDATE parentstudent SET permited=? WHERE id_student=(SELECT id FROM students WHERE id_person=(SELECT id FROM persons WHERE id_user=(SELECT id FROM users WHERE login=?)))",[permission,login], (err, rows) => {
+            if (err) return next(err);
+            res.redirect("/");
+            db.release();
+            if (err) return next(err);
+        });
     });
 });
 
