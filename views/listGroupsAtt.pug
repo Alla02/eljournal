@@ -1,0 +1,28 @@
+extends layout
+block variables
+  include variables
+block content
+    br
+    .container
+        h1(class=mt-5)=title
+        div(class="row")
+        div(class="tab-content")
+            br
+            ul(class="list-group")
+            each val in studyGroup
+                li(class="list-group-item serviceList" id = val.id ) #{val.name} (#{val.yearAdmission})
+                    i(class="caret fa fa-caret-down")
+                div(class="slide")
+                    br
+                    a(class="btn btn-primary" href='/attendance/' + val.id role="button") Посещаемость
+                    font()=" "
+                    a(class="btn btn-primary" href='/attCurator/' + val.id role="button") Посещаемость (для куратора)
+                    p
+
+
+
+
+
+
+
+

@@ -18,6 +18,39 @@ isLoggedIn = function(req, res, next) {
   }
 };
 
+router.get("/listGroupsAtt",isLoggedIn, function(req, res, next) {
+  result = [];
+  pool.getConnection(function(err, db) {
+    if (err) return next(err); // not connected!
+    var login, lastname, secondname, firstname, type_user, email = "";
+    if (req.user) {
+      login = req.user.login;
+      lastname = req.user.last_name;
+      firstname = req.user.first_name;
+      type_user = req.user.user_type;
+      email = req.user.email;
+      secondname = req.user.second_name;
+    }
+    db.query("SELECT id, name, YEAR(year_admission) as year_admission FROM studyGroups ORDER BY name", (err, rows) => {
+      if (err) return next(err);
+      rows.forEach(row => {
+        result.push({id: row.id, name: row.name, yearAdmission: row.year_admission});
+      });
+      res.render("listGroupsAtt", {
+        title: "Выбрать группу",
+        studyGroup: result, login: login,
+        lastname: lastname,
+        firstname: firstname,
+        secondname: secondname,
+        type_user: type_user,
+        email: email
+      });
+    });
+    db.release();
+    if (err) return next(err);
+  });
+});
+
 router.get('/attendance/:id',isLoggedIn, function(req, res, next) {
   var listStudents = [];
   pool.getConnection(function(err, db) {
@@ -70,6 +103,7 @@ router.get('/attendance/:id',isLoggedIn, function(req, res, next) {
         }
         else res.redirect("/");
       }
+      else res.redirect("/");
     });
   });
 });

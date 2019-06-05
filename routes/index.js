@@ -364,6 +364,56 @@ router.post("/table", function(req, res, next) {
     });
 });
 
-
+router.post("/fillSchedule2", function(req, res, next) {
+    //req.body.group  - AJAX data from /table
+    var result = [];
+    let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
+    subjects.name as subjectName, subjteacher.type_subject as typeSubject, studyGroups.name as groupName, persons.second_name as secondname, 
+    persons.last_name as lastname, persons.first_name as firstname, schedule.id as schid, schedule.dayOfWeek, schedule.numPair, schedule.typeWeek
+    FROM subjteacher 
+    INNER JOIN subjects ON subjects.id=subjteacher.id_subject
+    INNER JOIN studyGroups ON studyGroups.id=subjteacher.id_group
+    INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
+    INNER JOIN persons ON persons.id=teachers.id_person
+    INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
+    WHERE id_group=? and id_semester=? ORDER BY dayOfWeek, numPair`;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
+            if (err) return next(err);
+            if (rows.length ===0) res.send(JSON.stringify(result));
+            else {
+                var idSemester = rows[0].id;
+                db.query(str, [req.body.id_group, idSemester, req.body.day,arr], (err, rows) => {
+                    if (err) {
+                        return next(err);
+                    } else {
+                        rows.forEach(row => {
+                            result.push({
+                                id: row.id,
+                                dayOfWeek: row.dayOfWeek,
+                                numPair: row.numPair,
+                                groupId: row.id_group,
+                                groupName: row.groupName,
+                                teacherId: row.id_teacher,
+                                teacherName: row.lastname +
+                                    " " + row.firstname +
+                                    " " + row.secondname,
+                                subjectId: row.id_subject,
+                                subjectName: row.subjectName,
+                                week: row.typeWeek,
+                                typeSubject: row.typeSubject,
+                                idSubjTeacher: row.idSubjTeacher
+                            });
+                        });
+                    }
+                    res.send(JSON.stringify(result));
+                    db.release();
+                    if (err) return next(err);
+                });
+            }
+        });
+    });
+});
 
 module.exports = router;
