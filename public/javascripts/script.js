@@ -7,7 +7,7 @@ $(function(){
             format: 'YYYY-MM-DD'
         },
     });
-    $('#birthyear2').daterangepicker({
+    $('#birthyearstud').daterangepicker({
         singleDatePicker: true,
         showDropdowns: true,
         locale: {
@@ -28,7 +28,7 @@ $(function(){
             format: 'YYYY-MM-DD'
         },
     });
-    //$('#birthyear2').val('');
+    //$('#birthyearstud').val('');
     $('#birthyear').val('');
     $('#birthyear').attr("placeholder","Дата рождения");
 });

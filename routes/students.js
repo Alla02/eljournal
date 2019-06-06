@@ -127,8 +127,9 @@ router.get("/student/:id", isLoggedIn, function(req, res, next) {
 router.post("/student/:id", isLoggedIn, function(req, res, next) {
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("UPDATE persons,students SET persons.first_name=?,persons.second_name=?,persons.last_name=?,students.id_group=? \n" +
-            "WHERE persons.id=students.id_person AND students.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.body.studyGroup,req.params.id], function (err,row) {
+        console.log(req.body);
+        db.query("UPDATE persons,students SET persons.first_name=?,persons.second_name=?,persons.last_name=?,students.id_group=?,persons.birthYear=? \n" +
+            "WHERE persons.id=students.id_person AND students.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.body.studyGroup,req.body.birthyearstud,req.params.id], function (err,row) {
             if (err) return next(err);
             res.redirect("/listStudents");
         });
