@@ -19,7 +19,18 @@ block content
             div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
                 select(type='text', name='studyGroup' class='form-control')
                     each value in studyGroups
-                        option(value=value.id) #{value.name}
+                        if val.group===value.name
+                            option(value=value.id selected='selected') #{value.name}
+                        else
+                            option(value=value.id) #{value.name}
+            div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
+              select(type='text', name='parent' class='form-control')
+                  option
+                  each value in parents
+                      if val.pln === value.pln && val.pfn === value.pfn && val.psn === value.psn
+                          option(value=value.id selected='selected') #{value.pln} #{value.pfn} #{value.psn}
+                      else
+                          option(value=value.id) #{value.pln} #{value.pfn} #{value.psn}
             div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6")
               input(type='submit',class="btn btn-primary", value='Изменить')
               font()=" "

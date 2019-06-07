@@ -7,7 +7,7 @@ block content
         br
         ul(class="list-group")
         each val in res
-            li(class="list-group-item serviceList" id = val.id ) #{val.lastname} #{val.firstname} #{val.secondname} #{val.birthyear} #{val.group}
+            li(class="list-group-item serviceList" id = val.id ) #{val.lastname} #{val.firstname} #{val.secondname} #{val.birthyear} #{val.group} (#{val.pln} #{val.pfn} #{val.psn})
                 i(class="caret fa fa-caret-down")
             div(class="slide")
                 br
