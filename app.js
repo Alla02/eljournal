@@ -125,7 +125,7 @@ function getDate(begin_date,week) {
   var month = ["января", "февраля", "марта", "апреля", "мая", "июня",
       "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 
-  var TODAY = day[d.getDay()] + " " + d.getDate() + " " + month[d.getMonth()]
+  var TODAY = d.getDate() + " " + month[d.getMonth()]
       + " " + d.getFullYear() + " г.";
 
   var info,curweek;
