@@ -8,20 +8,22 @@ block content
         div(class="row")
         div(class="tab-content")
             br
-            p Номер группы и год зачисления
+            p Номер группы и куратор
             form(class="form-signin" id="formGroup" action='/addGroup', method='POST')
                 div(class="form-row")
                     div(class="col-lg-4 col-md-4 col-sm-4 col-xs-4")
                         input(name='nameGroup' id='nameGroup' class="form-control required" type="text" placeholder='Номер группы')
-                    div(class="col-lg-2 col-md-2 col-sm-2 col-xs-2")
-                        input(name='yearAdmission' id='yearAdmission' class="form-control required" type="text" placeholder='Год зачисления')
+                    div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
+                        select(type='text', name='curator' class='form-control')
+                            each value in curators
+                                option(value=value.id) #{value.lastname} #{value.firstname} #{value.secondname}
                     p
                     div(class="col-lg-6 col-md-6 col-sm-6 col-xs-6")
                         input(class="btn btn-success" type='submit', id="addGroup" value='Добавить')
             br
             ul(class="list-group")
             each val in studyGroup
-                li(class="list-group-item serviceList" id = val.id ) #{val.name} (#{val.yearAdmission})
+                li(class="list-group-item serviceList" id = val.id ) #{val.name} (#{val.lastname} #{val.firstname} #{val.secondname})
                     i(class="caret fa fa-caret-down")
                 div(class="slide")
                     br

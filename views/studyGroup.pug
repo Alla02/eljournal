@@ -10,7 +10,14 @@ block content
             div(class="form-row")
                 div(class="col-lg-4 col-md-4 col-sm-4 col-xs-6 mb-3")
                     input(name='name' class="form-control" type="text" value=val.name)
+                div(class="col-lg-3 col-md-3 col-sm-3 col-xs-6 mb-3")
+                    select(type='text', name='curator' class='form-control')
+                        each value in curators
+                            if val.curId === value.id
+                                option(value=value.id selected='selected') #{value.lastname} #{value.firstname} #{value.secondname}
+                            else
+                                option(value=value.id) #{value.lastname} #{value.firstname} #{value.secondname}
                 div(class="col")
                     input(class="btn btn-primary" id="updateGroup" type='submit' value='Изменить')
                     font()=" "
-                    a(class="btn btn-secondary" href='/listGroup' role="button") Отмена
+                    a(class="btn btn-secondary" href='/listGroups' role="button") Отмена
