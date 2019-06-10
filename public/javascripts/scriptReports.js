@@ -120,10 +120,6 @@ function getReport() {
         $('#addRows2').children("tr").remove();
         document.getElementById("firstTable").style.display='block';
         document.getElementById("secondTable").style.display='none';
-        /*
-        for (var i in res) {
-            $('#addRows').append('<tr><td>' + res[i].lastname+' '+ (res[i].firstname).substring(0, 1)+'. '+ (res[i].secondname).substring(0, 1) + '.</td><td>'+res[i].absent+'</td></tr>');
-        }*/
         $('#tableReports').DataTable( {
             destroy: true,
             data: res,
@@ -163,15 +159,6 @@ function getReport() {
             document.getElementById("secondTable").style.display='block';
             $('#addRows').children("tr").remove();
             $('#addRows2').children("tr").remove();
-            /*
-            for (var i in res) {
-                var atten;
-                if (res[i].attendance===1) atten="Присутствовал";
-                if (res[i].attendance===0) atten="Отсутствовал";
-                if (res[i].attendance===2) atten="Опоздал";
-                if (res[i].attendance===3) atten="Уважительная причина";
-                $('#addRows2').append('<tr><td>' + res[i].dateAtt+'</td><td>'+atten+'</td><td>'+res[i].name+'</td><td>'+res[i].comment+'</td></tr>');
-            }*/
 
             for (var i in res) {
                 var atten;

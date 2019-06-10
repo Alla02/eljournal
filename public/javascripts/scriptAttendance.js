@@ -81,12 +81,10 @@ $(document).ready(function () {
 
     $(function () {
         $('#selectDay').on('change', function () {
-            //alert($(this).val());
             $('#teachersName').text("");
             if( $(this).val()!= undefined){
                 var t = $(this).val().split(/[-]/);
                 var d = new Date(Date.UTC(t[0], t[1]-1, t[2]));
-                //console.log(getCurrentWeek())
                 attendance(d.getDay(),$(this).val());
             }
         });
@@ -117,7 +115,6 @@ $(document).ready(function () {
             $th = $cb.closest("td"), // get parent th
             col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
         var $cells = $("tbody td.attend:nth-child(" + col + ")");
-        //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
         if ($cells.hasClass("selected")) {
             if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late"))
                 $cells.addClass("present");
@@ -132,9 +129,6 @@ $(document).ready(function () {
     });
 
     $("#selectPair").on("change", function() {
-        //if (!$("td").hasClass("checked")) $("td.attend").removeClass("present").removeClass("absent").removeClass("late");
-        //$("tbody td.attend").removeClass("absent");
-        //$("tbody td.attend").removeClass("late");
         $("tbody td.attend").removeClass("selected");
         var idSubjTeacher = $("#selectPair option:selected").val();
         var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
@@ -149,7 +143,6 @@ $(document).ready(function () {
             dataType: "json"
         }).done(function (data) {
             $('#teachersName').text(data[0].lastname + " " + data[0].firstname.substring(1,0) + ". " + data[0].secondname.substring(1,0)+".");
-            //$("#teachersName").append(data[0].lastname + " " + data[0].lastname + " " + data[0].secondname);
         });
     });
 });
@@ -167,12 +160,9 @@ function saveResults() {
     }).done(function (data) {
         console.log("result from validat "+data.result);
         if (data.result) {
-            var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
-           // console.log(col);
+            var col = $("#"+idSubjTeacher).index()+1;
             var tab = document.getElementsByTagName("table")[0];
-            //var cells = tab.getElementsByClassName("attend");
             var cells = $("tbody td.attend:nth-child(" + col + ")");
-            //var checkboxes = tab.getElementsByClassName("check1");//
             var day = document.getElementById("selectDay").value;
             var res=[];
             for(var i = 0; i < cells.length; i++){

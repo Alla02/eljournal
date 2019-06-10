@@ -149,11 +149,6 @@ function savePermission() {
                         }
                     }
                 }
-                /*
-                if ($(checkboxes[i]).prop('checked')) {
-                    attend = 1;
-                }
-                else attend =0;*/
 
                 res.push({
                     "idStudent" : idStud,

@@ -110,32 +110,15 @@ $(document).ready(function () {
             '        </div>');
         if (cell.hasClass("selected")) {
             cell.removeClass("absent late present").addClass("excused");
-            //$('#exampleModalCenter').modal('show');
             $('#exampleModalCenter').modal('toggle');
-            //var column = cell.index();
-            //var idSubj = $('#subjects').find('td').eq(column).attr("id");
-            //var idStud = cell.parent().attr("id");
-            //console.log(column, idSubj,idStud);
             $( "#btnSubmitModal" ).on("click", function() {
                 var field1value = $("#commentField").val();
                 console.log("field1value "+field1value);
                 cell.find('.comment').text(field1value);
-                //$("#commentField").val('');
-                //$('#exampleModalCenter').modal('hide');
                 $('#exampleModalCenter').modal('toggle');
-                //$('#modalHere').remove();
-                //$('#exampleModalCenter').modal('dispose');
-                //event.stopPropagation();
             });
 
         }
-        //$("#commentField").html('');
-        //$("#commentField").val('');
-        //$("#commentField").text('');
-        /*
-        $(".modal").on("hidden.bs.modal", function(){
-            $(".modal-body1").html("");
-        });*/
     });
 
 
@@ -163,7 +146,6 @@ $(document).ready(function () {
             $th = $cb.closest("td"), // get parent th
             col = $th.index() + 1;  // get column index. note nth-child starts at 1, not zero
         var $cells = $("tbody td.attend:nth-child(" + col + ")");
-        //$("tbody td:nth-child(" + col + ") input").prop("checked", this.checked);  //select the inputs and [un]check it
         if ($cells.hasClass("selected")) {
             if (!$cells.hasClass("present") && !$cells.hasClass("absent") && !$cells.hasClass("late") && !$cells.hasClass("excused"))
                 $cells.addClass("present");
@@ -183,9 +165,6 @@ $(document).ready(function () {
     });
 
     $("#selectPair").on("change", function() {
-        //if (!$("td").hasClass("checked")) $("td.attend").removeClass("present").removeClass("absent").removeClass("late");
-        //$("tbody td.attend").removeClass("absent");
-        //$("tbody td.attend").removeClass("late");
         $("tbody td.attend").removeClass("selected");
         var idSubjTeacher = $("#selectPair option:selected").val();
         var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
@@ -198,16 +177,12 @@ $(document).ready(function () {
 function saveResults() {
     var idSubjTeacher = $("#selectPair option:selected").val();
     console.log(idSubjTeacher);
-    var col = $("#"+idSubjTeacher).index()+1;  // get column index. note nth-child starts at 1, not zero
-   // console.log(col);
+    var col = $("#"+idSubjTeacher).index()+1;
     var tab = document.getElementsByTagName("table")[0];
-    //var cells = tab.getElementsByClassName("attend");
     var cells = $("tbody td.attend:nth-child(" + col + ")");
-    //var checkboxes = tab.getElementsByClassName("check1");//
     var day = document.getElementById("selectDay").value;
     var res=[];
     for(var i = 0; i < cells.length; i++){
-        // Cell Object
         var cell = cells[i];
         var column = $(cell).index();
         var idSubj = $('#subjects').find('td').eq(column).attr("id");
@@ -231,12 +206,6 @@ function saveResults() {
                 }
             }
         }
-        /*
-        if ($(checkboxes[i]).prop('checked')) {
-            attend = 1;
-        }
-        else attend =0;*/
-
         res.push({
             "idStudent" : idStud,
             "idSubject"  : idSubj,
@@ -252,7 +221,6 @@ function saveResults() {
         url: "/saveAttendance",
         contentType: 'application/json',
         data: JSON.stringify(res)
-        //dataType: "json"
     }).done(function (data) {
         $("h2").text("Посещаемость сохранена");
     });
