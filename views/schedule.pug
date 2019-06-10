@@ -9,7 +9,7 @@ block content
                     .card
                         .card-header Редактировать расписание
                         .card-body
-                            form(name='my-form', action='/table', method='post')
+                            form(name='my-form', action='/schedule/'+res.id, method='post')
                                 .form-group.row
                                     label.col-md-5.col-form-label.text-md-right Группа
                                     .col-md-6
