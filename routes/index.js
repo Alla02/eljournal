@@ -515,7 +515,7 @@ router.get("/delSchedule/:id", function(req, res, next) {
     INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
     INNER JOIN persons ON persons.id=teachers.id_person
     INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
-    WHERE id_group=?`;
+    WHERE schedule.id=?`;
     pool.getConnection(function(err, db) {
         if (err) return next(err);
         db.query(str, [req.params.id], (err, rows) => {
@@ -547,14 +547,14 @@ router.get("/delSchedule/:id", function(req, res, next) {
 });
 
 router.post("/delSchedule/:id", function(req, res, next) {
-    var result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("DELETE FROM subjteacher WHERE id=?;", req.params.id, (err, rows) => {
+        db.query("SELECT id_group FROM subjteacher WHERE id=?;",[req.params.id], function (err,rows) {
             if (err) return next(err);
-            db.query("SELECT id_group FROM subjteacher WHERE id=?;",[req.params.id], function (err,rows) {
+            var idGroup=rows[0].id_group;
+            db.query("DELETE FROM subjteacher WHERE id=?;", req.params.id, (err) => {
                 if (err) return next(err);
-                res.redirect("/listSchedule/"+rows[0].id_group);
+                res.redirect("/listSchedule/"+idGroup);
             });
         });
         db.release();

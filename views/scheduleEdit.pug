@@ -73,7 +73,7 @@ block content
                                     .col-md-6
                                         select(type='text', name='semester' class='form-control' id='semester')
                                             each value in semester
-                                                option #{value.name}
+                                                option(value=value.id) #{value.name}
                                 .col-md-6.offset-md-5
                                     button.btn.btn-primary(type='submit')
                                         | Сохранить
