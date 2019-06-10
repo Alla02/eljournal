@@ -1,0 +1,19 @@
+extends layout
+block variables
+    include variables
+block content
+    .container
+        h1.mt-5 Расписание
+        br
+        ul(class="list-group")
+        each val in result
+            li(class="list-group-item serviceList" id = val.id ) #{val.dayOfWeek} #{val.numPair} #{val.teacherName} #{val.subjectName} #{val.week} #{val.typeSubject}
+                i(class="caret fa fa-caret-down")
+            div(class="slide")
+                br
+                a(class="btn btn-dark" href='/schedule/' + val.id role="button") Изменить
+                font()=" "
+                a(class="btn btn-danger" href='/delSchedule/' + val.id role="button") Удалить
+                p
+
+

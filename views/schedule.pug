@@ -1,0 +1,142 @@
+extends layout
+block variables
+    include variables
+block content
+    main.my-form
+        .cotainer
+            .row.justify-content-center
+                .col-md-5
+                    .card
+                        .card-header Редактировать расписание
+                        .card-body
+                            form(name='my-form', action='/table', method='post')
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Группа
+                                    .col-md-6
+                                        select(type='text', name='selectStudyGroup' class='form-control' id='selectStudyGroup')
+                                            each val in studyGroups
+                                                option(value=val.id) #{val.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right День недели:
+                                    .col-md-6
+                                        select(type='text', name='weekday' class='form-control' id='weekday')
+                                            if res.dayOfWeek === 1
+                                                option(value=1 selected='selected') Понедельник
+                                            else
+                                                option(value=1) Понедельник
+                                            if res.dayOfWeek === 2
+                                                option(value=2 selected='selected') Вторник
+                                            else
+                                                option(value=2) Вторник
+                                            if res.dayOfWeek === 3
+                                                option(value=3 selected='selected') Среда
+                                            else
+                                                option(value=3) Среда
+                                            if res.dayOfWeek === 4
+                                                option(value=4 selected='selected') Четверг
+                                            else
+                                                option(value=4) Четверг
+                                            if res.dayOfWeek === 5
+                                                option(value=5 selected='selected') Пятница
+                                            else
+                                                option(value=5) Пятница
+                                            if res.dayOfWeek === 6
+                                                option(value=6 selected='selected') Суббота
+                                            else
+                                                option(value=6) Суббота
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Время:
+                                    .col-md-6
+                                        select(type='text', name='time' class='form-control' id='time')
+                                            if res.numPair === 1
+                                                option(value=1 selected='selected') 08.30-10.00
+                                            else
+                                                option(value=1) 08.30-10.00
+                                            if res.numPair === 2
+                                                option(value=2 selected='selected') 10:10-11:40
+                                            else
+                                                option(value=2) 10:10-11:40
+                                            if res.numPair === 3
+                                                option(value=3 selected='selected') 11:50-13:20
+                                            else
+                                                option(value=3) 11:50-13:20
+                                            if res.numPair === 4
+                                                option(value=4 selected='selected') 13:50-15:20
+                                            else
+                                                option(value=4) 13:50-15:20
+                                            if res.numPair === 5
+                                                option(value=5 selected='selected') 15:30-17:00
+                                            else
+                                                option(value=5) 15:30-17:00
+                                            if res.numPair === 6
+                                                option(value=6 selected='selected') 17:10-18:40
+                                            else
+                                                option(value=6) 17:10-18:40
+                                            if res.numPair === 6
+                                                option(value=6 selected='selected') 18:50-20:20
+                                            else
+                                                option(value=6) 18:50-20:20
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Предмет:
+                                    .col-md-6
+                                        select(type='text', name='subject' class='form-control' id='subject')
+                                            each val in subjects
+                                                if val.name === res.subjectName
+                                                    option(value=val.id selected='selected') #{val.name}
+                                                else
+                                                    option(value=val.id) #{val.name}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Преподаватель:
+                                    .col-md-6
+                                        select(type='text', name='teacher' class='form-control' id='teacher')
+                                            each val in teachers
+                                                if val.lastname === res.lastname && val.firstname === res.firstname && val.secondname === res.secondname
+                                                    option(value=val.id selected='selected') #{val.lastname} #{val.firstname} #{val.secondname}
+                                                else
+                                                    option(value=val.id) #{val.lastname} #{val.firstname} #{val.secondname}
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Тип занятия:
+                                    .col-md-6
+                                        select(type='text', name='typeSubject' class='form-control' id='typeSubject')
+                                            if res.typeSubject === "лекция"
+                                                option(value=1 selected='selected') лекция
+                                            else
+                                                option(value=1) лекция
+                                            if res.typeSubject === "практика"
+                                                option(value=2 selected='selected') практика
+                                            else
+                                                option(value=2) практика
+                                            if res.typeSubject === "лабораторная"
+                                                option(value=3 selected='selected') лабораторная
+                                            else
+                                                option(value=3) лабораторная
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Тип недели:
+                                    .col-md-6
+                                        select(type='text', name='typeWeek' class='form-control' id='typeWeek')
+                                            if res.week === "Верхняя"
+                                                option(value=1 selected='selected') Верхняя
+                                            else
+                                                option(value=1) Верхняя
+                                            if res.week === "Нижняя"
+                                                option(value=2 selected='selected') Нижняя
+                                            else
+                                                option(value=2) Нижняя
+                                            if res.week === "Обе"
+                                                option(value=3 selected='selected') Обе
+                                            else
+                                                option(value=3) Обе
+                                .form-group.row
+                                    label.col-md-5.col-form-label.text-md-right Семестр:
+                                    .col-md-6
+                                        select(type='text', name='semester' class='form-control' id='semester')
+                                            each value in semester
+                                                if res.semester === value.id
+                                                    option(value=value.id selected='selected') #{value.name}
+                                                else
+                                                    option(value=value.id) #{value.name}
+                                .col-md-6.offset-md-5
+                                    button.btn.btn-primary(type='submit')
+                                        | Сохранить
+
+

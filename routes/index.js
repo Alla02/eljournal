@@ -364,8 +364,9 @@ router.post("/table", function(req, res, next) {
     });
 });
 
-router.post("/fillSchedule2", function(req, res, next) {
-    //req.body.group  - AJAX data from /table
+
+
+router.get("/listSchedule/:id", function(req, res, next) {
     var result = [];
     let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
     subjects.name as subjectName, subjteacher.type_subject as typeSubject, studyGroups.name as groupName, persons.second_name as secondname, 
@@ -376,43 +377,189 @@ router.post("/fillSchedule2", function(req, res, next) {
     INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
     INNER JOIN persons ON persons.id=teachers.id_person
     INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
-    WHERE id_group=? and id_semester=? ORDER BY dayOfWeek, numPair`;
+    WHERE id_group=? and id_semester=2 ORDER BY dayOfWeek, numPair`;
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        db.query("SELECT * FROM semester WHERE start <= ? AND end >= ?;", [req.body.selecteddate, req.body.selecteddate], (err, rows) => {
+        db.query(str, [req.params.id], (err, rows) => {
             if (err) return next(err);
-            if (rows.length ===0) res.send(JSON.stringify(result));
-            else {
-                var idSemester = rows[0].id;
-                db.query(str, [req.body.id_group, idSemester, req.body.day,arr], (err, rows) => {
-                    if (err) {
-                        return next(err);
-                    } else {
-                        rows.forEach(row => {
-                            result.push({
-                                id: row.id,
-                                dayOfWeek: row.dayOfWeek,
-                                numPair: row.numPair,
-                                groupId: row.id_group,
-                                groupName: row.groupName,
-                                teacherId: row.id_teacher,
-                                teacherName: row.lastname +
-                                    " " + row.firstname +
-                                    " " + row.secondname,
-                                subjectId: row.id_subject,
-                                subjectName: row.subjectName,
-                                week: row.typeWeek,
-                                typeSubject: row.typeSubject,
-                                idSubjTeacher: row.idSubjTeacher
-                            });
-                        });
-                    }
-                    res.send(JSON.stringify(result));
-                    db.release();
-                    if (err) return next(err);
+            var times =["8:30","10:10", "11:50", "13:50", "15:30", "17:10", "18:50"];
+            var days =["Пн","Вт", "Ср", "Чт", "Пт", "Сб"];
+            rows.forEach(row => {
+                result.push({
+                    id: row.schid,
+                    dayOfWeek: days[row.dayOfWeek-1],
+                    numPair: times[row.numPair-1],
+                    groupName: row.groupName,
+                    teacherName: row.lastname +
+                        " " + row.firstname +
+                        " " + row.secondname,
+                    subjectName: row.subjectName,
+                    week: row.typeWeek,
+                    typeSubject: row.typeSubject,
+                    idSubjTeacher: row.idSubjTeacher
                 });
-            }
+            });
+            res.render("listSchedule", {title: "Редактирование распиания",
+                result: result });
+            db.release();
+            if (err) return next(err);
         });
+    });
+});
+
+router.get("/schedule/:id", function(req, res, next) {
+    var result = [];
+    let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
+    subjects.name as subjectName, subjteacher.type_subject as typeSubject, studyGroups.name as groupName, persons.second_name as secondname, 
+    persons.last_name as lastname, persons.first_name as firstname, schedule.dayOfWeek, schedule.numPair, schedule.typeWeek
+    FROM subjteacher 
+    INNER JOIN subjects ON subjects.id=subjteacher.id_subject
+    INNER JOIN studyGroups ON studyGroups.id=subjteacher.id_group
+    INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
+    INNER JOIN persons ON persons.id=teachers.id_person
+    INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
+    WHERE schedule.id=?`;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        var subjects=[]; var studygroups = [];
+        db.query(str, [req.params.id], (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                result.push({
+                    dayOfWeek: row.dayOfWeek,
+                    numPair: row.numPair,
+                    groupName: row.groupName,
+                    lastname: row.lastname,
+                    firstname : row.firstname,
+                    secondname:  row.secondname,
+                    subjectName: row.subjectName,
+                    week: row.typeWeek,
+                    typeSubject: row.typeSubject,
+                    idSubjTeacher: row.idSubjTeacher,
+                    semester: row.id_semester
+                });
+            });
+            db.query("SELECT * FROM studyGroups WHERE id=(SELECT id_group FROM subjteacher WHERE id=(SELECT id_subjteacher FROM schedule WHERE id=?))",[req.params.id], (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                    studygroups.push({ id: row.id, name: row.name });
+                });
+                db.query("SELECT * FROM subjects ORDER BY name", (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        subjects.push({ id: row.id, name: row.name });
+                    });
+                    var teachers = [];
+                    db.query("SELECT * FROM persons WHERE id IN (SELECT id_person FROM teachers)", (err, rows) => {
+                        if (err) return next(err);
+                        rows.forEach(row => {
+                            teachers.push({ id: row.id, firstname: row.first_name, secondname: row.second_name, lastname: row.last_name });
+                        });
+                        var semester = [];
+                        db.query("SELECT * FROM semester", (err, rows) => {
+                            if (err) return next(err);
+                            rows.forEach(row => {
+                                semester.push({ id: row.id, start: row.start, end: row.end, name: row.name });
+                            });
+                            var login,lastname,secondname,firstname,type_user,email = "";
+                            if (req.user){
+                                login = req.user.login;
+                                lastname = req.user.last_name;
+                                firstname = req.user.first_name;
+                                type_user = req.user.user_type;
+                                email = req.user.email;
+                                secondname = req.user.second_name;
+                            }
+                            res.render("schedule", {title: "Редактирование распиания",
+                                subjects: subjects,
+                                teachers: teachers,
+                                studyGroups: studygroups,
+                                res: result[0],
+                                semester: semester });
+                        });
+                    });
+                });
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.post("/schedule/:id", function(req, res, next) {
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        db.query("UPDATE schedule,subjteacher SET persons.first_name=?,persons.second_name=?,persons.last_name=? " +
+            "WHERE subjteacher.id=schedule.id_subjteacher AND schedule.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.params.id], function (err,row) {
+            if (err) return next(err);
+            db.query("UPDATE persons,parents SET persons.first_name=?,persons.second_name=?,persons.last_name=? " +
+                "WHERE persons.id=parents.id_person AND parents.id=?;",[req.body.firstname,req.body.secondname,req.body.lastname,req.params.id], function (err,row) {
+                if (err) return next(err);
+                res.redirect("/listSchedule");
+            });
+        });
+        db.release();
+        if (err) return next(err);
+    });
+});
+
+router.get("/delSchedule/:id", function(req, res, next) {
+    var result = [];
+    let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group, 
+    subjects.name as subjectName, subjteacher.type_subject as typeSubject, studyGroups.name as groupName, persons.second_name as secondname, 
+    persons.last_name as lastname, persons.first_name as firstname, schedule.id as schid, schedule.dayOfWeek, schedule.numPair, schedule.typeWeek
+    FROM subjteacher 
+    INNER JOIN subjects ON subjects.id=subjteacher.id_subject
+    INNER JOIN studyGroups ON studyGroups.id=subjteacher.id_group
+    INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
+    INNER JOIN persons ON persons.id=teachers.id_person
+    INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
+    WHERE id_group=? and id_semester=2 ORDER BY dayOfWeek, numPair`;
+    pool.getConnection(function(err, db) {
+        if (err) return next(err);
+        var subjects=[]; var studygroups = [];
+        db.query("SELECT * FROM studyGroups WHERE id=(SELECT id_group FROM subjteacher WHERE id=(SELECT id_subjteacher FROM schedule WHERE id=?))",[req.params.id], (err, rows) => {
+            if (err) return next(err);
+            rows.forEach(row => {
+                studygroups.push({ id: row.id, name: row.name });
+            });
+            db.query("SELECT * FROM subjects ORDER BY name", (err, rows) => {
+                if (err) return next(err);
+                rows.forEach(row => {
+                    subjects.push({ id: row.id, name: row.name });
+                });
+                var teachers = [];
+                db.query("SELECT * FROM persons WHERE id IN (SELECT id_person FROM teachers)", (err, rows) => {
+                    if (err) return next(err);
+                    rows.forEach(row => {
+                        teachers.push({ id: row.id, firstname: row.first_name, secondname: row.second_name, lastname: row.last_name });
+                    });
+                    var semester = [];
+                    db.query("SELECT * FROM semester", (err, rows) => {
+                        if (err) return next(err);
+                        rows.forEach(row => {
+                            semester.push({ id: row.id, start: row.start, end: row.end, name: row.name });
+                        });
+                        var login,lastname,secondname,firstname,type_user,email = "";
+                        if (req.user){
+                            login = req.user.login;
+                            lastname = req.user.last_name;
+                            firstname = req.user.first_name;
+                            type_user = req.user.user_type;
+                            email = req.user.email;
+                            secondname = req.user.second_name;
+                        }
+                        res.render("schedule", {title: "Редактирование распиания",
+                            subjects: subjects,
+                            teachers: teachers,
+                            studyGroups: studygroups,
+                            semester: semester });
+                    });
+                });
+            });
+        });
+        db.release();
+        if (err) return next(err);
     });
 });
 
