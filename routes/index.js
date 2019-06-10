@@ -377,7 +377,7 @@ router.get("/listSchedule/:id", function(req, res, next) {
     INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
     INNER JOIN persons ON persons.id=teachers.id_person
     INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
-    WHERE id_group=? and id_semester=2 ORDER BY dayOfWeek, numPair`;
+    WHERE id_group=? ORDER BY dayOfWeek, numPair`;
     pool.getConnection(function(err, db) {
         if (err) return next(err);
         db.query(str, [req.params.id], (err, rows) => {
@@ -506,18 +506,43 @@ router.post("/schedule/:id", function(req, res, next) {
 
 router.get("/delSchedule/:id", function(req, res, next) {
     var result = [];
+    let str = `SELECT subjteacher.id as idSubjTeacher, subjteacher.id_subject, subjteacher.id_teacher, subjteacher.id_semester, subjteacher.id_group as groupId, 
+    subjects.name as subjectName, subjteacher.type_subject as typeSubject, studyGroups.name as groupName, persons.second_name as secondname, 
+    persons.last_name as lastname, persons.first_name as firstname, schedule.id as schid, schedule.dayOfWeek, schedule.numPair, schedule.typeWeek
+    FROM subjteacher 
+    INNER JOIN subjects ON subjects.id=subjteacher.id_subject
+    INNER JOIN studyGroups ON studyGroups.id=subjteacher.id_group
+    INNER JOIN teachers ON teachers.id=subjteacher.id_teacher  
+    INNER JOIN persons ON persons.id=teachers.id_person
+    INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher
+    WHERE id_group=?`;
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        var subjects=[]; var studygroups = [];
-        db.query("SELECT * FROM studyGroups WHERE id=(SELECT id_group FROM subjteacher WHERE id=(SELECT id_subjteacher FROM schedule WHERE id=?))",[req.params.id], (err, rows) => {
+        db.query(str, [req.params.id], (err, rows) => {
             if (err) return next(err);
-            db.query("SELECT id_group FROM subjteacher INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher AND schedule.id=?;",[req.params.id], function (err,rows) {
-                if (err) return next(err);
-                res.redirect("/listSchedule/"+rows[0].id_group);
+            var times =["8:30","10:10", "11:50", "13:50", "15:30", "17:10", "18:50"];
+            var days =["Пн","Вт", "Ср", "Чт", "Пт", "Сб"];
+            rows.forEach(row => {
+                result.push({
+                    id: row.schid,
+                    dayOfWeek: days[row.dayOfWeek-1],
+                    numPair: times[row.numPair-1],
+                    groupId: row.groupId,
+                    groupName: row.groupName,
+                    teacherName: row.lastname +
+                        " " + row.firstname +
+                        " " + row.secondname,
+                    subjectName: row.subjectName,
+                    week: row.typeWeek,
+                    typeSubject: row.typeSubject,
+                    idSubjTeacher: row.idSubjTeacher
+                });
             });
+            res.render("delSchedule", {title: "Удаление распиания",
+                val: result[0] });
+            db.release();
+            if (err) return next(err);
         });
-        db.release();
-        if (err) return next(err);
     });
 });
 
@@ -525,10 +550,9 @@ router.post("/delSchedule/:id", function(req, res, next) {
     var result = [];
     pool.getConnection(function(err, db) {
         if (err) return next(err);
-        var subjects=[]; var studygroups = [];
-        db.query("SELECT * FROM studyGroups WHERE id=(SELECT id_group FROM subjteacher WHERE id=(SELECT id_subjteacher FROM schedule WHERE id=?))",[req.params.id], (err, rows) => {
+        db.query("DELETE FROM subjteacher WHERE id=?;", req.params.id, (err, rows) => {
             if (err) return next(err);
-            db.query("SELECT id_group FROM subjteacher INNER JOIN schedule ON subjteacher.id=schedule.id_subjteacher AND schedule.id=?;",[req.params.id], function (err,rows) {
+            db.query("SELECT id_group FROM subjteacher WHERE id=?;",[req.params.id], function (err,rows) {
                 if (err) return next(err);
                 res.redirect("/listSchedule/"+rows[0].id_group);
             });
